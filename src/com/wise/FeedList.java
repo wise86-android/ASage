@@ -2,7 +2,6 @@ package com.wise;
 
 import android.app.Activity;
 import android.app.LoaderManager;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -32,7 +31,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -52,12 +50,10 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 	    private int lastVisitColumn;
 	    private SimpleCursorAdapter feeds;
 	    
-	    private Bookmarks bookmarks; 
 	
 	   public void onCreate(Bundle savedInstanceState) {
-	        super.onCreate(savedInstanceState);
-	        
-	        bookmarks = new Bookmarks(getContentResolver());
+	        super.onCreate(savedInstanceState);      
+
 	        
 	        this.setContentView(R.layout.feed_list);
 	        	        
@@ -73,14 +69,8 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 	     
 	     list.setAdapter(feeds);
 	     list.setOnItemClickListener(this);
-	     
-	     feeds.swapCursor(bookmarks.getAllBookmarks());
-	     
-	     //this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
-	     
-	     Cursor dir = bookmarks.getDirectory();
-	     Log.d("dir","size: "+dir.getCount());
-	     
+	          
+	     this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 	   } 
 	   
 	   @Override

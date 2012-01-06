@@ -33,7 +33,6 @@ public class ASageActivity extends Activity {
 	private WebView mBrowser;
 	private TextView mTitle;
 	private URL feedXml;
-	private Bookmarks bookMarks;
 	private Transformer mRss2Html;
 	
     /** Called when the activity is first created. */
