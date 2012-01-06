@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_error">Error Reading the Feed</string>
+    <string name="url_error">Malformed Url!</string>
+    
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favIconDescription">Bookmark\'s favIcon</string>
+    <style name="updateFeed"></style>
+    
+</resources>
