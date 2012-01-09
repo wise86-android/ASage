@@ -16,7 +16,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -24,44 +23,34 @@ import android.os.Bundle;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.TextView;
+import android.webkit.WebViewFragment;
 
-public class ASageActivity extends Activity {
+public class RssViewFragment extends WebViewFragment {
 	
-	final static String ASAGE_URL = "url"; 
+	final static String RSS_URL = "url"; 
 	
-	private WebView mBrowser;
-	private TextView mTitle;
 	private URL feedXml;
 	private Transformer mRss2Html;
-	
-    /** Called when the activity is first created. */
+	private WebView browser;
+
+	/** Called when the activity is first created. */
   	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.a_sage);
-        
-        mBrowser = (WebView) this.findViewById(R.id.browser);
-        mBrowser.setWebViewClient(new WebClientManager());
-        
-        mTitle = (TextView) this.findViewById(R.id.title);
-        
-        
-        
+            
         if(savedInstanceState == null)
-        	savedInstanceState = this.getIntent().getExtras();
+        	savedInstanceState = this.getActivity().getIntent().getExtras();
         
         try {
-        	feedXml = new URL(savedInstanceState.getString(ASAGE_URL));
-        	//feedXml = new URL("http://www.comicsblog.it/rss2.xml");	
+        	//feedXml = new URL(savedInstanceState.getString(RSS_URL));
+        	feedXml = new URL("http://www.comicsblog.it/rss2.xml");	
         	
 		} catch (MalformedURLException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
         
-        
-        
+               
         try {
 			mRss2Html = TransformerFactory.newInstance().newTransformer( 
 					new StreamSource(this.getResources().openRawResource(R.raw.rss2html)));
@@ -73,33 +62,21 @@ public class ASageActivity extends Activity {
 			e.printStackTrace();
 		}
        
-        /*Cursor c = new CursorLoader(this,android.provider.Browser.BOOKMARKS_URI,
-        		null, null, null, null).loadInBackground();
-        
-        int nameIndex = c.getColumnIndex(Browser.BookmarkColumns.TITLE);
-        int isBookMarkIndex = c.getColumnIndex(Browser.BookmarkColumns.BOOKMARK);
-        int urlIndex = c.getColumnIndex(Browser.BookmarkColumns.URL);
-     
-        Log.d("bookMarksCol","number: "+c.getColumnCount());
-        for(String name : c.getColumnNames()){
-        	Log.d("bookMarksCol","name: "+name);
-        }
-        c.moveToFirst();
-        while (!c.isAfterLast()){
-        	if(c.getInt(isBookMarkIndex)==1){
-        		Log.d("bookMarks","name: "+c.getString(nameIndex));
-        		Log.d("bookMarks","Url: "+c.getString(urlIndex));
-        	}
-        	c.moveToNext();
-        }
-        */
-      
-        new LoadRss().execute(feedXml);
+    
         
 	}//onCreate
+  	
+  	
+  	public void onStart(){
+  		super.onStart();
+  		Log.d("LoadUrl", "Open: ");
+  	    browser = this.getWebView();
+        browser.setWebViewClient(new WebClientManager());
+        new LoadRss().execute(feedXml);
+  	}
 	
   	@Override
-  	protected void onSaveInstanceState (Bundle outState){
+  	public void onSaveInstanceState(Bundle outState){
   		//save the feed
   		outState.putString("url",feedXml.toString());
   	}
@@ -130,9 +107,8 @@ public class ASageActivity extends Activity {
 		
 		@Override
 		protected void onPostExecute(Void notUsed){
-			mTitle.setText("Finito!!");
-			mBrowser.loadData(page.toString(), "text/html", "utf8");
-			
+			browser.loadData(page.toString(), "text/html", "utf8");
+			Log.d("LoadUrl", "Open: ");
 		}
 				
 	}

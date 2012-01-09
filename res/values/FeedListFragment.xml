@@ -2,5 +2,6 @@
 <resources>
     <string name="network_error">Error Reading the Feed</string>
     <string name="url_error">Malformed Url!</string>
+    <dimen name="list_width">300dp</dimen>
     
 </resources>

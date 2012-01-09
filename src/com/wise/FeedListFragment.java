@@ -1,9 +1,10 @@
 package com.wise;
 
 import android.app.Activity;
+import android.app.ListFragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
-import android.content.Intent;
+
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
@@ -36,13 +37,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 
-public class FeedList extends Activity implements AdapterView.OnItemClickListener,
-	LoaderManager.LoaderCallbacks<Cursor>{
+
+public class FeedListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor>{
 	
 	
-	private final static int CURSOR_BOOKMARK=0;
+		private final static int CURSOR_BOOKMARK=0;
 	
-		private ListView list;
 		private Cursor rssBookmark;
 		private int  favIconColumn;
 	    private int titleColumn;
@@ -54,32 +54,30 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 	   public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);      
 
-	        
-	        this.setContentView(R.layout.feed_list);
-	        	        
-	        list = (ListView) this.findViewById(R.id.andoid_list);
-
+	        this.setHasOptionsMenu(true);
+	     
 	     
 	     //Log.d("Cursor","size: "+c.getCount());
 	     int[] showItem = new int[] {R.id.feedItem_favIcon,R.id.feedItem_name};
 	     String[] showValue = new String[]{Browser.BookmarkColumns.FAVICON,Browser.BookmarkColumns.TITLE};
-	     feeds =  new SimpleCursorAdapter(this, R.layout.feed_item, null, showValue, showItem,0);
+	     feeds =  new SimpleCursorAdapter(this.getActivity(), R.layout.feed_item, null, showValue, showItem,0);
 	     
 	     feeds.setViewBinder(new BuildItemView());
 	     
-	     list.setAdapter(feeds);
-	     list.setOnItemClickListener(this);
-	          
+	     this.setListAdapter(feeds);
+	       
 	     this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 	   } 
 	   
-	   @Override
-	   public boolean onCreateOptionsMenu(Menu menu) {
-	       MenuInflater inflater = getMenuInflater();
-	       inflater.inflate(R.menu.feed_list, menu);
-	       return true;
-	   }
 	   
+	   
+	   @Override
+	   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+
+		   inflater.inflate(R.menu.feed_list, menu);
+
+	   }
+
 	   @Override
 	   public boolean onOptionsItemSelected(MenuItem item) {
 	       // Handle item selection
@@ -94,18 +92,18 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 	           return super.onOptionsItemSelected(item);
 	       }
 	   }
-	   
-	     
-	private void addNewFeed() {
-		Log.d("menuFeedList","click addNewFeed\n");
-		
-	}
+		   
+		     
+		private void addNewFeed() {
+			Log.d("menuFeedList","click addNewFeed\n");
+			
+		}
 
-	private void checkSync() {
-		Log.d("menuFeedList","click checkSync\n");
-		new CheckRssUpdate(this).execute(rssBookmark);
-		
-	}
+		private void checkSync() {
+			Log.d("menuFeedList","click checkSync\n");
+			new CheckRssUpdate(this).execute(rssBookmark);
+		}
+
 
 
 	private class BuildItemView implements SimpleCursorAdapter.ViewBinder{
@@ -138,13 +136,13 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 	   		
 			
 			
-			Intent i = new Intent(this,ASageActivity.class);
+			/*Intent i = new Intent(this.getActivity(),ASageActivity.class);
 			Log.d("Clik","Position: "+position+" id: "+id+" size:"+rssBookmark+"\n");
 			rssBookmark.moveToPosition(position);
 			i.putExtra(ASageActivity.ASAGE_URL,rssBookmark.getString(urlColumn));
 			
 			startActivity(i);
-			
+			*/
 			
 		}
 
@@ -152,7 +150,7 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 		public Loader<Cursor> onCreateLoader(int id, Bundle arg1) {
 			switch(id){
 			case CURSOR_BOOKMARK:
-				return new CursorLoader(this,android.provider.Browser.BOOKMARKS_URI,
+				return new CursorLoader(this.getActivity(),android.provider.Browser.BOOKMARKS_URI,
 			    		 new String[] {Browser.BookmarkColumns._ID,Browser.BookmarkColumns.FAVICON, Browser.BookmarkColumns.DATE,
 			    		 			   Browser.BookmarkColumns.TITLE,Browser.BookmarkColumns.URL},
 			    		 			   "("+Browser.BookmarkColumns.BOOKMARK+"=1)",null,
@@ -183,10 +181,12 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 
 		private class CheckRssUpdate extends AsyncTask<Cursor,Integer,Integer>{
 
-			private Activity contex;
+			private ListView list;
+			private Activity context;
 			
-			public CheckRssUpdate(Activity c){
-				contex=c;
+			public CheckRssUpdate(ListFragment lf){
+				list = lf.getListView();
+				context = lf.getActivity();
 			}
 			
 			@Override
@@ -217,9 +217,9 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 							url = new URL(c.getString(urlColumn));
 							xr.parse(new InputSource(url.openStream()));
 						} catch (MalformedURLException e) {
-							Toast.makeText(contex,R.string.url_error,5);
+							Toast.makeText(context,R.string.url_error,5);
 						} catch (IOException e) {
-							Toast.makeText(contex,R.string.network_error,5);
+							Toast.makeText(context,R.string.network_error,5);
 						} catch (SAXException e) { // early stop of the parser
 							
 						}
@@ -228,7 +228,8 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 						
 						if(lastVisitDate < xmlHandler.getLastUpdate().getTime()){
 							
-							contex.runOnUiThread(new UpdateUi(i));
+						
+							context.runOnUiThread(new UpdateUi(list,i));
 							
 							nUpdate++;
 						}
@@ -257,9 +258,11 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 			private class UpdateUi implements Runnable{
 				
 				private int index;
+				private ListView list;
 				
-				public UpdateUi(int i){
+				public UpdateUi(ListView l,int i){
 					index = i;
+					list =l;
 				}
 				
 				
@@ -274,6 +277,7 @@ public class FeedList extends Activity implements AdapterView.OnItemClickListene
 			}
 						
 		}
-	   
+
+		   
 
 }
