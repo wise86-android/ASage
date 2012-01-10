@@ -1,3 +1,22 @@
+/*
+ * 	This file is part of ASage.
+ *
+ *    ASage is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    ASage is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with ASage.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2012 Giovanni Visentini 
+ */
+
 package com.wise;
 
 import java.io.ByteArrayOutputStream;
@@ -25,106 +44,122 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebViewFragment;
 
+/**
+ * class that show the rss content
+ * @author Giovanni Visentini
+ * */
 public class RssViewFragment extends WebViewFragment {
-	
-	final static String RSS_URL = "url"; 
-	
+
+	private final static String TAG="RssView";
+	public final static String RSS_URL = "url";
+
 	private URL feedXml;
 	private Transformer mRss2Html;
 	private WebView browser;
 
-	/** Called when the activity is first created. */
-  	@Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-            
-        if(savedInstanceState == null)
-        	savedInstanceState = this.getActivity().getIntent().getExtras();
-        
-        try {
-        	//feedXml = new URL(savedInstanceState.getString(RSS_URL));
-        	feedXml = new URL("http://www.comicsblog.it/rss2.xml");	
-        	
+	/**
+	 * @see android.app.Fragment#onCreate(android.os.Bundle)
+	 */
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		if (savedInstanceState == null)
+			savedInstanceState = this.getActivity().getIntent().getExtras();
+
+		try {
+			// feedXml = new URL(savedInstanceState.getString(RSS_URL));
+			feedXml = new URL("http://www.comicsblog.it/rss2.xml");
+
 		} catch (MalformedURLException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
-        
-               
-        try {
-			mRss2Html = TransformerFactory.newInstance().newTransformer( 
-					new StreamSource(this.getResources().openRawResource(R.raw.rss2html)));
+
+		try {
+			mRss2Html = TransformerFactory.newInstance().newTransformer(
+					new StreamSource(this.getResources().openRawResource(
+							R.raw.rss2html)));
 		} catch (TransformerConfigurationException e) {
-			Log.println(Log.DEBUG, "xmlTrans", e.toString());
+			Log.d(TAG, e.toString());
 			e.printStackTrace();
 		} catch (TransformerFactoryConfigurationError e) {
-			Log.println(Log.DEBUG, "xmlTrans", e.toString());
+			Log.d(TAG, e.toString());
 			e.printStackTrace();
 		}
-       
-    
-        
-	}//onCreate
-  	
-  	
-  	public void onStart(){
-  		super.onStart();
-  		Log.d("LoadUrl", "Open: ");
-  	    browser = this.getWebView();
-        browser.setWebViewClient(new WebClientManager());
-        new LoadRss().execute(feedXml);
-  	}
-	
-  	@Override
-  	public void onSaveInstanceState(Bundle outState){
-  		//save the feed
-  		outState.putString("url",feedXml.toString());
-  	}
-  	
-	private class LoadRss extends AsyncTask<URL,Void,Void>{
 
+	}// onCreate
+
+	/**
+	 * @see android.app.Fragment#onStart()
+	 */
+	/*we use onStart for be secure that the webView is initialized */
+	public void onStart() {
+		super.onStart();
+		browser = this.getWebView();
+		browser.setWebViewClient(new WebClientManager());
+		//start thread for load the xml
+		new LoadRss().execute(feedXml);
+	}
+
+	/**
+	 * @see android.app.Fragment#onSaveInstanceState(android.os.Bundle)
+	 */
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		// save the feed
+		outState.putString(RSS_URL, feedXml.toString());
+	}
+
+	/**
+	 *class that load the xml and convert it into an html file
+	 */
+	private class LoadRss extends AsyncTask<URL, Void, Void> {
+
+		//buffer for the downloaded page
 		private ByteArrayOutputStream page = new ByteArrayOutputStream();
-		
+
 		@Override
-		protected Void doInBackground(URL... arg0) {			
-			Result html = new StreamResult(page);
-	       // StreamSource s = new StreamSource(this.getResources().openRawResource(R.raw.rss2));
-	        StreamSource s=null;
-			try {
-				s = new StreamSource(feedXml.openStream());
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			} 
-	        try {
-				mRss2Html.transform(s,html);
-			} catch (TransformerException e) {
-				Log.println(Log.WARN, "xmlTrans", e.toString());
-				e.printStackTrace();
-			}
+		protected Void doInBackground(URL... arg0) {
 			
+			Result html = new StreamResult(page);
+
+			try {
+				StreamSource s = new StreamSource(feedXml.openStream());
+				mRss2Html.transform(s, html);
+			} catch (TransformerException e) {
+				Log.e(TAG, "TransformerException", e);
+			} catch (IOException e) {
+				Log.e(TAG, "IOException", e);
+			}
+
 			return null;
 		}
-		
+
 		@Override
-		protected void onPostExecute(Void notUsed){
+		protected void onPostExecute(Void notUsed) {
+			Log.d(TAG, "Page Loaded");
 			browser.loadData(page.toString(), "text/html", "utf8");
-			Log.d("LoadUrl", "Open: ");
 		}
-				
+
 	}
-	
-	private class WebClientManager extends  WebViewClient{
-		
+
+	/**
+	 *class that manage the browser 
+	 *used for open a link into the default browser instead of using the fragment
+	 */
+	private class WebClientManager extends WebViewClient {
+
 		@Override
-		public boolean shouldOverrideUrlLoading(WebView view, String url){
-			Log.d("LoadUrl", "Open: "+url);
-			
-			Intent i = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+			Log.d(TAG, "Open link: " + url);
+
+			Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 			view.getContext().startActivity(i);
-			
+
 			return true;
 		}
-		
+
 	}
-	
+
 }
