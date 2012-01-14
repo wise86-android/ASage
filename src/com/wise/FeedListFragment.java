@@ -170,17 +170,22 @@ public class FeedListFragment extends ListFragment implements
 	}
 
 	/**
-	 * @param arg0
-	 * @param feedItem
-	 * @param position
-	 * @param id
+	 * @see android.app.ListFragment#onListItemClick(android.widget.ListView, android.view.View, int, long)
 	 */
-	public void onItemClick(AdapterView<?> arg0, View feedItem, int position,
-			long id) {
+	public void onListItemClick (ListView l, View feedItem, int position, long id) {
 
+		
 		TextView name = (TextView) feedItem.findViewById(R.id.feedItem_name);
 		name.setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
 
+		rssBookmark.moveToPosition(position);
+		Log.d(TAG,"Click position: "+position+" url: "+rssBookmark.moveToPosition(position));
+		
+		RssViewFragment rssView = (RssViewFragment) getFragmentManager().findFragmentById(R.id.rss_view_fragment);
+		
+		if(rssView!=null){
+			rssView.viewRss(rssBookmark.getString(urlColumn));
+		}
 		/*
 		 * Intent i = new Intent(this.getActivity(),ASageActivity.class);
 		 * Log.d(TAG

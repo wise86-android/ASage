@@ -35,20 +35,24 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebViewFragment;
+import android.widget.TextView;
 
 /**
  * class that show the rss content
  * @author Giovanni Visentini
  * */
-public class RssViewFragment extends WebViewFragment {
+public class RssViewFragment extends Fragment {
 
 	private final static String TAG="RssView";
 	public final static String RSS_URL = "url";
@@ -57,6 +61,12 @@ public class RssViewFragment extends WebViewFragment {
 	private Transformer mRss2Html;
 	private WebView browser;
 
+	private static String ERROR_MESSAGE[];
+	private static int ERROR_URL=0;
+	private static int ERROR_XML=1;
+	private TextView errorMessage;
+	private View errorView;
+	
 	/**
 	 * @see android.app.Fragment#onCreate(android.os.Bundle)
 	 */
@@ -64,17 +74,17 @@ public class RssViewFragment extends WebViewFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		if (savedInstanceState == null)
-			savedInstanceState = this.getActivity().getIntent().getExtras();
-
-		try {
-			// feedXml = new URL(savedInstanceState.getString(RSS_URL));
-			feedXml = new URL("http://www.comicsblog.it/rss2.xml");
-
-		} catch (MalformedURLException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
+		if(ERROR_MESSAGE==null){
+			ERROR_MESSAGE=getResources().getStringArray(R.array.errorMessageString);
 		}
+		
+		if (savedInstanceState != null){
+			try {
+				feedXml = new URL(savedInstanceState.getString(RSS_URL));
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}//try-catch
+		}//if
 
 		try {
 			mRss2Html = TransformerFactory.newInstance().newTransformer(
@@ -86,7 +96,7 @@ public class RssViewFragment extends WebViewFragment {
 		} catch (TransformerFactoryConfigurationError e) {
 			Log.d(TAG, e.toString());
 			e.printStackTrace();
-		}
+		}//try-catch
 
 	}// onCreate
 
@@ -96,50 +106,89 @@ public class RssViewFragment extends WebViewFragment {
 	/*we use onStart for be secure that the webView is initialized */
 	public void onStart() {
 		super.onStart();
-		browser = this.getWebView();
 		browser.setWebViewClient(new WebClientManager());
-		//start thread for load the xml
-		new LoadRss().execute(feedXml);
 	}
+	
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.rss_view, container, false);
+        
+        browser = (WebView) v.findViewById(R.id.browser);
+        errorMessage = (TextView) v.findViewById(R.id.errorText);
+        errorView = v.findViewById(R.id.errorView);
+        
+        showBrowser();
+        
+        return v;
+    }
 
+    public void showError(int messageId, Object... paramiter){
+    	errorMessage.setText(String.format(ERROR_MESSAGE[messageId],paramiter));
+    	errorView.setVisibility(View.VISIBLE);
+    	browser.setVisibility(View.GONE);
+    }
+
+    public void showBrowser(){
+    	errorView.setVisibility(View.GONE);
+    	browser.setVisibility(View.VISIBLE);
+    }
+    
+    public void viewRss(String url){
+    	try {
+			feedXml = new URL(url);
+			new LoadRss().execute(feedXml);
+		} catch (MalformedURLException e) {
+			showError(ERROR_URL,url);
+		}
+    	
+    	
+    }
+    
 	/**
 	 * @see android.app.Fragment#onSaveInstanceState(android.os.Bundle)
 	 */
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		// save the feed
-		outState.putString(RSS_URL, feedXml.toString());
+		if(feedXml!=null)
+			outState.putString(RSS_URL, feedXml.toString());
 	}
 
 	/**
 	 *class that load the xml and convert it into an html file
 	 */
-	private class LoadRss extends AsyncTask<URL, Void, Void> {
+	private class LoadRss extends AsyncTask<URL, Void, Boolean> {
 
 		//buffer for the downloaded page
 		private ByteArrayOutputStream page = new ByteArrayOutputStream();
 
 		@Override
-		protected Void doInBackground(URL... arg0) {
+		protected Boolean doInBackground(URL... arg0) {
 			
 			Result html = new StreamResult(page);
 
 			try {
 				StreamSource s = new StreamSource(feedXml.openStream());
 				mRss2Html.transform(s, html);
-			} catch (TransformerException e) {
+			} catch (Exception e) {
 				Log.e(TAG, "TransformerException", e);
-			} catch (IOException e) {
-				Log.e(TAG, "IOException", e);
+				return false;
 			}
 
-			return null;
+			return true;
 		}
 
 		@Override
-		protected void onPostExecute(Void notUsed) {
-			Log.d(TAG, "Page Loaded");
-			browser.loadData(page.toString(), "text/html", "utf8");
+		protected void onPostExecute(Boolean loaded) {
+			Log.d(TAG, "Page Loaded:" + loaded);
+			if(loaded){
+				String html = page.toString();
+				if(!html.isEmpty())
+					browser.loadData(page.toString(), "text/html", "utf8");
+				else
+					showError(ERROR_XML,feedXml.toString());
+			}
 		}
 
 	}
