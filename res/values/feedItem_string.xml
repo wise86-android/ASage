@@ -2,5 +2,8 @@
 <resources>
     <string name="favIconDescription">Bookmark\'s favIcon</string>
     <style name="updateFeed"></style>
+    <dimen name="textSize_feedItem">32dp</dimen>
+    <dimen name="iconSize_feedItem">48dp</dimen>
+    <dimen name="padding_feedItem">5dp</dimen>
     
 </resources>

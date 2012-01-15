@@ -28,6 +28,8 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Browser;
@@ -36,8 +38,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -72,14 +72,17 @@ public class FeedListFragment extends ListFragment implements
 	private int urlColumn;
 	private int lastVisitColumn;
 	private SimpleCursorAdapter feeds;
+	
+	private int iconSize;
 
 	/** @see android.app.Fragment#onCreate(android.os.Bundle) */
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
 		this.setHasOptionsMenu(true);
 
-		int[] showItem = new int[] { R.id.feedItem_favIcon, R.id.feedItem_name };
+		iconSize = getResources().getDimensionPixelSize(R.dimen.iconSize_feedItem);
+		int[] showItem = new int[] { R.id.feedItem_name, R.id.feedItem_name };
 		String[] showValue = new String[] { Browser.BookmarkColumns.FAVICON,
 				Browser.BookmarkColumns.TITLE };
 
@@ -148,20 +151,28 @@ public class FeedListFragment extends ListFragment implements
 		 *      android.database.Cursor, int)
 		 */
 		public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+			TextView name = (TextView) view
+					.findViewById(R.id.feedItem_name);
 
 			if (columnIndex == favIconColumn) {
-				ImageView icon = (ImageView) view
-						.findViewById(R.id.feedItem_favIcon);
-				byte[] image = cursor.getBlob(columnIndex);
-				if (image != null)
-					icon.setImageBitmap(BitmapFactory.decodeByteArray(image, 0,
+				byte[] image = cursor.getBlob(favIconColumn);
+				Drawable d;
+				if (image != null){
+					 d= new BitmapDrawable(view.getResources(),BitmapFactory.decodeByteArray(image, 0,
 							image.length));
+				}else{
+					//set the default icon
+					//TODO: set the default icon from a xml resource..
+					d = view.getResources().getDrawable(android.R.drawable.ic_input_get);
+				}
+				
+				d.setBounds(0, 0, iconSize, iconSize);
+				name.setCompoundDrawables(d, null,null,null);
 			} else if (columnIndex == titleColumn) {
-				TextView name = (TextView) view
-						.findViewById(R.id.feedItem_name);
-				name.setText(cursor.getString(columnIndex));
-			} else
+				name.setText(cursor.getString(titleColumn));
+			}else{
 				return false;
+			}
 			// if-else-else
 
 			return true;
