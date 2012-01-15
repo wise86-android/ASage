@@ -184,9 +184,10 @@ public class RssViewFragment extends Fragment {
 			Log.d(TAG, "Page Loaded:" + loaded);
 			if(loaded){
 				String html = page.toString();
-				if(!html.isEmpty())
+				if(!html.isEmpty()){
 					browser.loadData(page.toString(), "text/html", "utf8");
-				else
+					showBrowser();
+				}else
 					showError(ERROR_XML,feedXml.toString());
 			}
 		}
