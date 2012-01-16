@@ -2,5 +2,4 @@
 <resources>
     <string name="syncMenuItem">Sync</string>
     <string name="AddFeedMenuItem">Add Feed</string>
-    
 </resources>
