@@ -23,6 +23,7 @@ import android.app.Activity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 
 import android.content.Loader;
 import android.database.Cursor;
@@ -196,16 +197,12 @@ public class FeedListFragment extends ListFragment implements
 		
 		if(rssView!=null){
 			rssView.viewRss(rssBookmark.getString(urlColumn));
+		}else{
+			Log.d(TAG,"start intent");
+			Intent i = new Intent(this.getActivity(),RssViewActivity.class);
+			i.putExtra(RssViewActivity.RSS_URL,rssBookmark.getString(urlColumn));
+			startActivity(i);
 		}
-		/*
-		 * Intent i = new Intent(this.getActivity(),ASageActivity.class);
-		 * Log.d(TAG
-		 * ,"Position: "+position+" id: "+id+" size:"+rssBookmark+"\n");
-		 * rssBookmark.moveToPosition(position);
-		 * i.putExtra(ASageActivity.ASAGE_URL,rssBookmark.getString(urlColumn));
-		 * 
-		 * startActivity(i);
-		 */
 
 	}
 

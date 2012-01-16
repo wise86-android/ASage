@@ -74,6 +74,7 @@ public class RssViewFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		Log.d(TAG, "fragment");
 		if(ERROR_MESSAGE==null){
 			ERROR_MESSAGE=getResources().getStringArray(R.array.errorMessageString);
 		}
