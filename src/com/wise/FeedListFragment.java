@@ -20,12 +20,17 @@
 package com.wise;
 
 import android.app.Activity;
-import android.app.ListFragment;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
+//import android.app.ListFragment;
+import android.support.v4.app.ListFragment;
+//import android.app.LoaderManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+
+//import android.content.CursorLoader;
 import android.content.Intent;
 
-import android.content.Loader;
+//import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
@@ -87,13 +92,16 @@ public class FeedListFragment extends ListFragment implements
 		String[] showValue = new String[] { Browser.BookmarkColumns.FAVICON,
 				Browser.BookmarkColumns.TITLE };
 
+		/*feeds = new SimpleCursorAdapter(this.getActivity(), R.layout.feed_item,
+				null, showValue, showItem, 0);*/
+				
 		feeds = new SimpleCursorAdapter(this.getActivity(), R.layout.feed_item,
-				null, showValue, showItem, 0);
+				null, showValue, showItem);
 		feeds.setViewBinder(new BuildItemView());
 
 		this.setListAdapter(feeds);
 		// start loading the cursor
-		this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
+		this.getActivity().getSupportLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 	}
 
 	/**
@@ -211,7 +219,7 @@ public class FeedListFragment extends ListFragment implements
 	 * @see android.app.LoaderManager.LoaderCallbacks#onCreateLoader(int,
 	 *      android.os.Bundle)
 	 */
-	public Loader<Cursor> onCreateLoader(int id, Bundle arg1) {
+	public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle arg1) {
 		switch (id) {
 		case CURSOR_BOOKMARK:
 			return new CursorLoader(this.getActivity(),
@@ -235,23 +243,25 @@ public class FeedListFragment extends ListFragment implements
 	 * save the loaded cursor, and init the variable tha maps the column name
 	 * @see android.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.content.Loader, java.lang.Object)
 	 */
-	public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
+	public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor c) {
 		favIconColumn = c.getColumnIndex(Browser.BookmarkColumns.FAVICON);
 		titleColumn = c.getColumnIndex(Browser.BookmarkColumns.TITLE);
 		urlColumn = c.getColumnIndex(Browser.BookmarkColumns.URL);
 		lastVisitColumn = c.getColumnIndex(Browser.BookmarkColumns.DATE);
 		rssBookmark = c;
 		//build the listview
-		feeds.swapCursor(c);
+		//feeds.swapCursor(c);
+		feeds.changeCursor(c);
 	}
 
 	/**
 	 * invalidate the cursor
 	 * @see android.app.LoaderManager.LoaderCallbacks#onLoaderReset(android.content.Loader)
 	 */
-	public void onLoaderReset(Loader<Cursor> loader) {
+	public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
 		rssBookmark = null;
-		feeds.swapCursor(null);
+		//feeds.swapCursor(null);
+		feeds.changeCursor(null);
 
 	}
 

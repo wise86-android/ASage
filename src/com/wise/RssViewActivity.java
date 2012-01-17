@@ -25,14 +25,15 @@ RssViewActivity.java
 */
 package com.wise;
 
-import android.app.Activity;
+
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 
 /**
  * @author wise
  *
  */
-public class RssViewActivity extends Activity {
+public class RssViewActivity extends FragmentActivity {
 	
 	public final static String RSS_URL = RssViewFragment.RSS_URL;
 	public final static String TAG ="RssViewActivity";
@@ -50,7 +51,7 @@ public class RssViewActivity extends Activity {
 		if (extras != null) {
 			// Take the info from the intent and deliver it to the fragment so it can update
 			String url = extras.getString(RSS_URL);
-			RssViewFragment frag = (RssViewFragment) getFragmentManager().findFragmentById(R.id.rss_view_fragment);
+			RssViewFragment frag = (RssViewFragment) getSupportFragmentManager().findFragmentById(R.id.rss_view_fragment);
 			frag.viewRss(url);
       }
 		

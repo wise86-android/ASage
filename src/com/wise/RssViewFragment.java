@@ -21,7 +21,6 @@ package com.wise;
 
 import java.io.ByteArrayOutputStream;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -29,13 +28,13 @@ import javax.xml.transform.Result;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import android.app.Fragment;
+//import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -185,7 +184,8 @@ public class RssViewFragment extends Fragment {
 			Log.d(TAG, "Page Loaded:" + loaded);
 			if(loaded){
 				String html = page.toString();
-				if(!html.isEmpty()){
+				//if(!html.isEmpty()){
+				if(html.length()!=0){
 					browser.loadData(page.toString(), "text/html", "utf8");
 					showBrowser();
 				}else
