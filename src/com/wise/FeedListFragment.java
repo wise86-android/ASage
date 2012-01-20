@@ -45,6 +45,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -66,6 +67,8 @@ public class FeedListFragment extends ListFragment implements
 
 	private final static String TAG = "FeedList";
 	private final static int CURSOR_BOOKMARK = 0;
+	
+	
 
 	private Cursor rssBookmark;
 	private int favIconColumn;
@@ -94,6 +97,7 @@ public class FeedListFragment extends ListFragment implements
 		this.setListAdapter(feeds);
 		// start loading the cursor
 		this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
+
 	}
 
 	/**
@@ -106,8 +110,9 @@ public class FeedListFragment extends ListFragment implements
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.feed_list, menu);
 	}
+	
 
-	/**
+/**
 	 * @see android.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
 	 */
 	@Override
@@ -301,7 +306,9 @@ public class FeedListFragment extends ListFragment implements
 					URL url;
 					try {
 						url = new URL(c.getString(urlColumn));
-						xr.parse(new InputSource(url.openStream()));
+						HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();	
+						urlConnection.addRequestProperty("Cache-Control", "no-cache"); // fresh data
+						xr.parse(new InputSource(urlConnection.getInputStream()));
 					} catch (MalformedURLException e) {
 						Toast.makeText(context, R.string.url_error, 5);
 					} catch (IOException e) {

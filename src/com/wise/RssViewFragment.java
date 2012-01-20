@@ -22,6 +22,7 @@ package com.wise;
 import java.io.ByteArrayOutputStream;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -163,20 +164,25 @@ public class RssViewFragment extends Fragment {
 
 		//buffer for the downloaded page
 		private ByteArrayOutputStream page = new ByteArrayOutputStream();
-
+		
 		@Override
-		protected Boolean doInBackground(URL... arg0) {
+		protected Boolean doInBackground(URL... rssUrl) {
 			
 			Result html = new StreamResult(page);
-
+			
 			try {
-				StreamSource s = new StreamSource(feedXml.openStream());
+				HttpURLConnection urlConnection = (HttpURLConnection) rssUrl[0].openConnection();	
+				urlConnection.addRequestProperty("Cache-Control", "max-age=600"); // 10min
+				StreamSource s = new StreamSource(urlConnection.getInputStream());
 				mRss2Html.transform(s, html);
-			} catch (Exception e) {
-				Log.e(TAG, "TransformerException", e);
+			} catch (IOException e) {
+				showError(ERROR_URL,feedXml.toString());
+				return false;
+			} catch (TransformerException e) {
+				showError(ERROR_XML,feedXml.toString());
 				return false;
 			}
-
+			
 			return true;
 		}
 
