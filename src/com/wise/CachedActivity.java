@@ -21,20 +21,29 @@
  */
 
 /**
-RssViewActivity.java
+CachedActivity.java
 */
 package com.wise;
 
+import java.io.File;
+import java.io.IOException;
+
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+
+import android.net.http.HttpResponseCache;
 
 /**
  * @author wise
  *
  */
-public class RssViewActivity extends CachedActivity {
+public class CachedActivity extends FragmentActivity {
 	
-	public final static String RSS_URL = RssViewFragment.RSS_URL;
-	public final static String TAG ="RssViewActivity";
+	private final long httpCacheSize =2 * 1024*1024; // 2mb
+	private final static String TAG = "CachedActivity";
+
+	
 	/**
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
 	 */
@@ -42,17 +51,28 @@ public class RssViewActivity extends CachedActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setContentView(R.layout.rss_view_activity);
-		Bundle extras = getIntent().getExtras();
-	    
-	
-		if (extras != null) {
-			// Take the info from the intent and deliver it to the fragment so it can update
-			String url = extras.getString(RSS_URL);
-			RssViewFragment frag = (RssViewFragment) getSupportFragmentManager().findFragmentById(R.id.rss_view_fragment);
-			frag.viewRss(url);
-      }
-		
+		if(HttpResponseCache.getInstalled()==null)
+			setHttpCache();
 	}
 
+	protected void setHttpCache(){
+		try {
+           File httpCacheDir = new File(getCacheDir(), "http");
+           HttpResponseCache.install(httpCacheDir, httpCacheSize);
+		}catch (IOException e) {
+           Log.i(TAG, "HTTP response cache installation failed:" + e);
+       }
+	}
+	
+	protected void onStop(){
+		super.onStop();
+		
+	    HttpResponseCache cache = HttpResponseCache.getInstalled();
+        if (cache != null) {
+            cache.flush();
+        }//if
+        
+
+		
+	}
 }

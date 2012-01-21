@@ -19,15 +19,13 @@
 
 package com.wise;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 
 /**
  * Main class of the project
  * @author Giovanni Visentini
  */
-public class ASage extends FragmentActivity {
+public class ASage extends CachedActivity {
 
 	/**
 	 * @see android.app.Activity#onCreate(android.os.Bundle)

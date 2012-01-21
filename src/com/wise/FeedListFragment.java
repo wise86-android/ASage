@@ -50,6 +50,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -71,6 +72,8 @@ public class FeedListFragment extends ListFragment implements
 
 	private final static String TAG = "FeedList";
 	private final static int CURSOR_BOOKMARK = 0;
+	
+	
 
 	private Cursor rssBookmark;
 	private int favIconColumn;
@@ -114,8 +117,9 @@ public class FeedListFragment extends ListFragment implements
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.feed_list, menu);
 	}
+	
 
-	/**
+/**
 	 * @see android.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
 	 */
 	@Override
@@ -171,8 +175,7 @@ public class FeedListFragment extends ListFragment implements
 							image.length));
 				}else{
 					//set the default icon
-					//TODO: set the default icon from a xml resource..
-					d = view.getResources().getDrawable(android.R.drawable.ic_input_get);
+					d = view.getResources().getDrawable(R.drawable.feed_icon);
 				}
 				
 				d.setBounds(0, 0, iconSize, iconSize);
@@ -219,7 +222,7 @@ public class FeedListFragment extends ListFragment implements
 	 * @see android.app.LoaderManager.LoaderCallbacks#onCreateLoader(int,
 	 *      android.os.Bundle)
 	 */
-	public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle arg1) {
+	public Loader<Cursor> onCreateLoader(int id, Bundle arg1) {
 		switch (id) {
 		case CURSOR_BOOKMARK:
 			return new CursorLoader(this.getActivity(),
@@ -243,7 +246,7 @@ public class FeedListFragment extends ListFragment implements
 	 * save the loaded cursor, and init the variable tha maps the column name
 	 * @see android.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.content.Loader, java.lang.Object)
 	 */
-	public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor c) {
+	public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
 		favIconColumn = c.getColumnIndex(Browser.BookmarkColumns.FAVICON);
 		titleColumn = c.getColumnIndex(Browser.BookmarkColumns.TITLE);
 		urlColumn = c.getColumnIndex(Browser.BookmarkColumns.URL);
@@ -311,7 +314,9 @@ public class FeedListFragment extends ListFragment implements
 					URL url;
 					try {
 						url = new URL(c.getString(urlColumn));
-						xr.parse(new InputSource(url.openStream()));
+						HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();	
+						urlConnection.addRequestProperty("Cache-Control", "no-cache"); // fresh data
+						xr.parse(new InputSource(urlConnection.getInputStream()));
 					} catch (MalformedURLException e) {
 						Toast.makeText(context, R.string.url_error, 5);
 					} catch (IOException e) {
