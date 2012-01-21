@@ -168,8 +168,7 @@ public class FeedListFragment extends ListFragment implements
 							image.length));
 				}else{
 					//set the default icon
-					//TODO: set the default icon from a xml resource..
-					d = view.getResources().getDrawable(android.R.drawable.ic_input_get);
+					d = view.getResources().getDrawable(R.drawable.feed_icon);
 				}
 				
 				d.setBounds(0, 0, iconSize, iconSize);

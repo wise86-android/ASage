@@ -2,10 +2,7 @@ a draf aplication for create something like the asage extension on
 andorid
 
 TODO:
-- create the layout for the small screen device
 - undestend how use the frament for the system pre 3.0
 - create the dialog for the add bookmars
 - create a good xsl
-- buffering the xml and avoid to load it from the net for check the 
-update and see the update
 
