@@ -33,7 +33,7 @@ public class ASage extends CachedActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setContentView(R.layout.a_sage);
 	}
 

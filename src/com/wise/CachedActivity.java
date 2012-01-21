@@ -25,22 +25,19 @@ CachedActivity.java
 */
 package com.wise;
 
-import java.io.File;
-import java.io.IOException;
-
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
-import android.net.http.HttpResponseCache;
-
+//import android.net.http.HttpResponseCache;
+import java.net.ResponseCache;
 /**
  * @author wise
  *
  */
 public class CachedActivity extends FragmentActivity {
 	
-	private final long httpCacheSize =2 * 1024*1024; // 2mb
+	//private final long httpCacheSize =2 * 1024*1024; // 2mb
 	private final static String TAG = "CachedActivity";
 
 	
@@ -51,10 +48,20 @@ public class CachedActivity extends FragmentActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		if(HttpResponseCache.getInstalled()==null)
-			setHttpCache();
+		ResponseCache.setDefault(ResponseCache.getDefault());
+		
 	}
-
+	
+	protected void setHttpCache(){
+		
+		ResponseCache rc = ResponseCache.getDefault();
+		if(rc != null){
+			ResponseCache.setDefault(rc);
+		}else{
+			Log.i(TAG, "No Defalut Response Cache");
+		}
+	}
+/*
 	protected void setHttpCache(){
 		try {
            File httpCacheDir = new File(getCacheDir(), "http");
@@ -63,16 +70,17 @@ public class CachedActivity extends FragmentActivity {
            Log.i(TAG, "HTTP response cache installation failed:" + e);
        }
 	}
-	
+	*/
 	protected void onStop(){
 		super.onStop();
-		
+		ResponseCache.setDefault(null);
+	/*	
 	    HttpResponseCache cache = HttpResponseCache.getInstalled();
         if (cache != null) {
             cache.flush();
         }//if
         
-
+*/
 		
 	}
 }
