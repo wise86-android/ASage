@@ -45,7 +45,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -163,7 +162,7 @@ public class FeedListFragment extends OnlineFragment implements
 			new CheckRssUpdate(this.getActivity(),feedsList).execute(rssBookmark);
 		else{
 			Log.d(TAG, "Toast\n");
-			Toast.makeText(this.getActivity(), ERROR_MESSAGE[ERROR_NETWORK], 10).show();
+			showError(ERROR_NETWORK);
 		}
 	}
 
