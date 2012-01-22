@@ -35,8 +35,11 @@ import android.util.Log;
 import android.net.http.HttpResponseCache;
 
 /**
- * @author wise
- *
+ * an Activity that use the same httpResponseCache for saving the feed 
+ * inside the cache
+ * 
+ * 
+ * @author Giovanni Visentini
  */
 public class CachedActivity extends Activity {
 	

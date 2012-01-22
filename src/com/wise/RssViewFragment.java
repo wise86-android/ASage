@@ -74,6 +74,7 @@ public class RssViewFragment extends Fragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		//setRetainInstance(true);
 
 		Log.d(TAG, "fragment");
 		if(ERROR_MESSAGE==null){
@@ -181,8 +182,7 @@ public class RssViewFragment extends Fragment {
 			} catch (TransformerException e) {
 				showError(ERROR_XML,feedXml.toString());
 				return false;
-			}
-			
+			}			
 			return true;
 		}
 
