@@ -20,7 +20,6 @@
 package com.wise;
 
 import android.app.Activity;
-import android.app.ListFragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -35,10 +34,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Browser;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -62,19 +65,19 @@ import org.xml.sax.XMLReader;
  * 
  * @author Giovanni Visentini
  */
-public class FeedListFragment extends ListFragment implements
-		LoaderManager.LoaderCallbacks<Cursor> {
+public class FeedListFragment extends OnlineFragment implements
+		LoaderManager.LoaderCallbacks<Cursor>,OnItemClickListener{
 
 	private final static String TAG = "FeedList";
 	private final static int CURSOR_BOOKMARK = 0;
-	
-	
 
 	private Cursor rssBookmark;
 	private int favIconColumn;
 	private int titleColumn;
 	private int urlColumn;
 	private int lastVisitColumn;
+	
+	private ListView feedsList;
 	private SimpleCursorAdapter feeds;
 	
 	private int iconSize;
@@ -94,11 +97,23 @@ public class FeedListFragment extends ListFragment implements
 				null, showValue, showItem, 0);
 		feeds.setViewBinder(new BuildItemView());
 
-		this.setListAdapter(feeds);
+		
 		// start loading the cursor
 		this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 
 	}
+	
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.feed_list, container, false);
+        
+        feedsList = (ListView) v.findViewById(R.id.feed_list);
+        feedsList.setAdapter(feeds);
+        feedsList.setOnItemClickListener(this);        
+        
+        return v;
+    }
 
 	/**
 	 * create the menu for sync or add a voice
@@ -144,7 +159,12 @@ public class FeedListFragment extends ListFragment implements
 	private void checkSync() {
 		Log.d(TAG, "click checkSync\n");
 		//start the thread
-		new CheckRssUpdate(this).execute(rssBookmark);
+		if(isOnline())
+			new CheckRssUpdate(this.getActivity(),feedsList).execute(rssBookmark);
+		else{
+			Log.d(TAG, "Toast\n");
+			Toast.makeText(this.getActivity(), ERROR_MESSAGE[ERROR_NETWORK], 10).show();
+		}
 	}
 
 	/**
@@ -185,12 +205,13 @@ public class FeedListFragment extends ListFragment implements
 
 	}
 
+	
 	/**
-	 * @see android.app.ListFragment#onListItemClick(android.widget.ListView, android.view.View, int, long)
+	 * @see android.widget.AdapterView.OnItemClickListener#onItemClick(android.widget.AdapterView, android.view.View, int, long)
 	 */
-	public void onListItemClick (ListView l, View feedItem, int position, long id) {
-
-		
+	@Override
+	public void onItemClick(AdapterView<?> l, View feedItem, int position, long id) {
+			
 		TextView name = (TextView) feedItem.findViewById(R.id.feedItem_name);
 		name.setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
 
@@ -271,9 +292,9 @@ public class FeedListFragment extends ListFragment implements
 		/**
 		 * @param lf fragment that show the list to update
 		 */
-		public CheckRssUpdate(ListFragment lf) {
-			list = lf.getListView(); 
-			context = lf.getActivity();
+		public CheckRssUpdate(Activity c,ListView l) {
+			list = l;
+			context = c;
 		}
 
 		/**
@@ -309,9 +330,9 @@ public class FeedListFragment extends ListFragment implements
 						urlConnection.addRequestProperty("Cache-Control", "no-cache"); // fresh data
 						xr.parse(new InputSource(urlConnection.getInputStream()));
 					} catch (MalformedURLException e) {
-						Toast.makeText(context, R.string.url_error, 5);
+						showError(ERROR_URL,c.getString(urlColumn));
 					} catch (IOException e) {
-						Toast.makeText(context, R.string.network_error, 5);
+						showError(ERROR_NETWORK);
 					} catch (SAXException e) { // early stop of the parser
 
 					}
@@ -379,5 +400,7 @@ public class FeedListFragment extends ListFragment implements
 		}//updateUi
 
 	}//CheckRssUpdate
+
+	
 
 }

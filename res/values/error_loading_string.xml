@@ -3,5 +3,8 @@
  <string-array name="errorMessageString">
      <item >Error loading the url:\n %s</item>
      <item >Xml parsing error in the file:\n%s</item>
+     <item >Network connection not found!</item>
  </string-array>
+ <color name="BackgroudColor">#DAAA</color>
+ <color name="TextColor">#FFFFFF</color>
 </resources>

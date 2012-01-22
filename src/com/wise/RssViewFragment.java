@@ -36,7 +36,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -47,13 +46,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.TextView;
 
 /**
  * class that show the rss content
  * @author Giovanni Visentini
  * */
-public class RssViewFragment extends Fragment {
+public class RssViewFragment extends OnlineFragment {
 
 	private final static String TAG="RssView";
 	public final static String RSS_URL = "url";
@@ -61,12 +59,6 @@ public class RssViewFragment extends Fragment {
 	private URL feedXml;
 	private Transformer mRss2Html;
 	private WebView browser;
-
-	private static String ERROR_MESSAGE[];
-	private static int ERROR_URL=0;
-	private static int ERROR_XML=1;
-	private TextView errorMessage;
-	private View errorView;
 	
 	/**
 	 * @see android.app.Fragment#onCreate(android.os.Bundle)
@@ -77,9 +69,6 @@ public class RssViewFragment extends Fragment {
 		//setRetainInstance(true);
 
 		Log.d(TAG, "fragment");
-		if(ERROR_MESSAGE==null){
-			ERROR_MESSAGE=getResources().getStringArray(R.array.errorMessageString);
-		}
 		
 		if (savedInstanceState != null){
 			try {
@@ -87,7 +76,7 @@ public class RssViewFragment extends Fragment {
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}//try-catch
-		}//if
+		}
 
 		try {
 			mRss2Html = TransformerFactory.newInstance().newTransformer(
@@ -118,35 +107,34 @@ public class RssViewFragment extends Fragment {
         View v = inflater.inflate(R.layout.rss_view, container, false);
         
         browser = (WebView) v.findViewById(R.id.browser);
-        errorMessage = (TextView) v.findViewById(R.id.errorText);
-        errorView = v.findViewById(R.id.errorView);
-        
-        showBrowser();
-        
+        showDefaultContentBrowser(); 
         return v;
     }
 
     public void showError(int messageId, Object... paramiter){
-    	errorMessage.setText(String.format(ERROR_MESSAGE[messageId],paramiter));
-    	errorView.setVisibility(View.VISIBLE);
-    	browser.setVisibility(View.GONE);
+    	super.showError(messageId, paramiter);
+    	showDefaultContentBrowser();
     }
 
-    public void showBrowser(){
-    	errorView.setVisibility(View.GONE);
-    	browser.setVisibility(View.VISIBLE);
+    public void showDefaultContentBrowser(){
+    	/*Log.d(TAG, getResources().get.getString(R.raw.feed_icon));
+    	browser.load
+    	browser.loadData(getResources().getString(R.raw.feed_icon),"image/svg+xml","UTF-8");*/
     }
     
+    
     public void viewRss(String url){
-    	try {
-			feedXml = new URL(url);
-			new LoadRss().execute(feedXml);
-		} catch (MalformedURLException e) {
-			showError(ERROR_URL,url);
-		}
-    	
-    	
-    }
+    	if(isOnline()){
+	    	try {
+				feedXml = new URL(url);
+				new LoadRss().execute(feedXml);
+			} catch (MalformedURLException e) {
+				showError(ERROR_URL,url);
+			}//try-catch
+    	}else{
+    		showError(ERROR_NETWORK);
+		}//if-else
+	}//viewRss
     
 	/**
 	 * @see android.app.Fragment#onSaveInstanceState(android.os.Bundle)
@@ -168,6 +156,10 @@ public class RssViewFragment extends Fragment {
 		
 		@Override
 		protected Boolean doInBackground(URL... rssUrl) {
+			
+			if(!isOnline()){
+				showError(ERROR_NETWORK);
+			}
 			
 			Result html = new StreamResult(page);
 			
@@ -193,7 +185,6 @@ public class RssViewFragment extends Fragment {
 				String html = page.toString();
 				if(!html.isEmpty()){
 					browser.loadData(page.toString(), "text/html", "utf8");
-					showBrowser();
 				}else
 					showError(ERROR_XML,feedXml.toString());
 			}
