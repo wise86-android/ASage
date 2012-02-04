@@ -32,7 +32,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
-import android.net.http.HttpResponseCache;
+//import android.net.http.HttpResponseCache;
 
 /**
  * an Activity that use the same httpResponseCache for saving the feed 
@@ -47,9 +47,7 @@ public class CachedActivity extends Activity {
 	private final static String TAG = "CachedActivity";
 
 	
-	/**
-	 * @see android.app.Activity#onCreate(android.os.Bundle)
-	 */
+	/*
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -74,8 +72,6 @@ public class CachedActivity extends Activity {
         if (cache != null) {
             cache.flush();
         }//if
-        
-
-		
 	}
+	*/
 }
