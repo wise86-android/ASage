@@ -3,30 +3,56 @@
      xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.0">
 <xsl:template match="//rss">
   <html>
+  <head>
+ 	<link rel="stylesheet" type="text/css" href="feedStyle.css" />
+  </head>
   <body>
-    <h1><xsl:value-of select="/rss/channel/title"/></h1>
-    <p><xsl:value-of select="/rss/channel/description"/></p>
-    <xsl:element name="a">
-      	<xsl:attribute name="href">
-      		<xsl:value-of select="link"/>
-      	</xsl:attribute>
-      	Read more...
-    </xsl:element>
-    <xsl:for-each select="/rss/channel/item">
-        <h2><xsl:value-of select="title"/></h2>
-        <p><xsl:value-of select="description" disable-output-escaping="yes"/></p>
-        <p>
-    <xsl:element name="a">
-      	<xsl:attribute name="href">
-        	<xsl:value-of select="link"/>
-      	</xsl:attribute>
-      	Read more...
-    </xsl:element>
-    </p>
-    <p style="color: #ccc; font-size: 0.7em;"><xsl:value-of select="dc:creator"/></p>
-    <p style="color: #ccc; font-style: italic; font-size: 0.7em;"><xsl:value-of select="dc:date"/></p>
-    </xsl:for-each>
+  
+  <div id="rss-header">
+  	<h1 id="rss-title">
+	      <xsl:element name="a">
+	      	<xsl:attribute name="href">
+	      		<xsl:value-of select="link"/>
+	      	</xsl:attribute>
+	      	<xsl:attribute name="id">
+	      		rss-link
+	      	</xsl:attribute>
+	  		<xsl:attribute name="name">
+	      		rss-link
+	      	</xsl:attribute>
+	    	<xsl:value-of select="/rss/channel/title"/>
+	    </xsl:element>	
+    </h1>
+    <p id="rss-desc"><xsl:value-of select="/rss/channel/description"/></p>
+  </div>
+  <xsl:for-each select="/rss/channel/item">
+  
+  	<div class="item">
+    	<h2 class="item-title">
+    		<span class="item-ordinal"><xsl:value-of select="position()" /> -</span>
+    		<xsl:element name="a">
+	      	<xsl:attribute name="href">
+	      		<xsl:value-of select="link"/>
+	      	</xsl:attribute>
+    		<xsl:value-of select="title"/>
+    		</xsl:element>
+    	</h2>
+
+    	<div class="item-desc">
+  			<xsl:value-of select="description" disable-output-escaping="yes"/>
+  		</div>
+  		
+	    <div class="item-pubDate">
+	      <xsl:value-of select="dc:date"/>
+	    </div>
+
+	    <div class="item-author">
+	      <xsl:value-of select="dc:creator"/>
+	    </div>
+  	</div>
+  </xsl:for-each>
   </body>
   </html>
 </xsl:template>
-</xsl:stylesheet> 
+</xsl:stylesheet>  
+  

@@ -161,7 +161,6 @@ public class FeedListFragment extends OnlineFragment implements
 		if(isOnline())
 			new CheckRssUpdate(this.getActivity(),feedsList).execute(rssBookmark);
 		else{
-			Log.d(TAG, "Toast\n");
 			showError(ERROR_NETWORK);
 		}
 	}

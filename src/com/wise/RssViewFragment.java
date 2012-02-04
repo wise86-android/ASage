@@ -181,10 +181,12 @@ public class RssViewFragment extends OnlineFragment {
 		@Override
 		protected void onPostExecute(Boolean loaded) {
 			Log.d(TAG, "Page Loaded:" + loaded);
+			
 			if(loaded){
 				String html = page.toString();
 				if(!html.isEmpty()){
-					browser.loadData(page.toString(), "text/html", "utf8");
+					browser.loadDataWithBaseURL("file:///android_asset/",page.toString(), "text/html", "utf8",null);
+
 				}else
 					showError(ERROR_XML,feedXml.toString());
 			}
