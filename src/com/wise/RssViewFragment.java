@@ -66,17 +66,8 @@ public class RssViewFragment extends OnlineFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//setRetainInstance(true);
 
 		Log.d(TAG, "fragment");
-		
-		if (savedInstanceState != null){
-			try {
-				feedXml = new URL(savedInstanceState.getString(RSS_URL));
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}//try-catch
-		}
 
 		try {
 			mRss2Html = TransformerFactory.newInstance().newTransformer(
@@ -90,6 +81,11 @@ public class RssViewFragment extends OnlineFragment {
 			e.printStackTrace();
 		}//try-catch
 
+		if (savedInstanceState != null){
+			viewRss(savedInstanceState.getString(RSS_URL));
+		}
+		
+		
 	}// onCreate
 
 	/**
