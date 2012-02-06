@@ -17,7 +17,7 @@
  *   Copyright 2012 Giovanni Visentini 
  */
 
-package com.wise;
+package com.wise.gui;
 
 import java.io.ByteArrayOutputStream;
 
@@ -35,6 +35,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+import com.wise.R;
+import com.wise.R.id;
+import com.wise.R.layout;
+import com.wise.R.raw;
 
 import android.content.Intent;
 import android.net.Uri;

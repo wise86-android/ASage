@@ -17,7 +17,7 @@
  *   Copyright 2012 Giovanni Visentini 
  */
 
-package com.wise;
+package com.wise.xml;
 
 import java.util.Date;
 

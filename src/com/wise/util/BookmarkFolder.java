@@ -1,4 +1,5 @@
 /*
+ *
  * 	This file is part of ASage.
  *
  *    ASage is free software: you can redistribute it and/or modify
@@ -14,30 +15,40 @@
  *   You should have received a copy of the GNU General Public License
  *   along with ASage.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Copyright 2012 Giovanni Visentini 
+ *   Copyright 2012 wise 
+ *
+ *
  */
-
-package com.wise.gui;
-
-import com.wise.R;
-import com.wise.R.layout;
-
-import android.os.Bundle;
 
 /**
- * Main class of the project
- * @author Giovanni Visentini
- */
-public class ASage extends CachedActivity {
+BookmarkFolder.java
+*/
+package com.wise.util;
 
-	/**
-	 * @see android.app.Activity#onCreate(android.os.Bundle)
-	 */
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		
-		setContentView(R.layout.a_sage);
+import android.provider.BrowserContract.Bookmarks;
+import android.content.Context;
+import android.content.CursorLoader;
+
+
+/**
+ * A Cursor for scan the Bookmarks folders
+ * 
+ * @author Giovanni Visentini
+ *
+ */
+public class BookmarkFolder extends CursorLoader{
+	
+	public static final String FOLDER_NAME=Bookmarks.TITLE;
+	public static final String FOLDER_ID=Bookmarks._ID;
+	
+	public BookmarkFolder(Context c){
+		super(c,Bookmarks.CONTENT_URI_DEFAULT_FOLDER,
+				new String[]{
+					Bookmarks._ID,
+					Bookmarks.TITLE },
+			"(" + Bookmarks.IS_FOLDER +"=1)",
+			null,Bookmarks.TITLE);
 	}
+	
 
 }

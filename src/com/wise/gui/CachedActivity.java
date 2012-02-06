@@ -23,7 +23,7 @@
 /**
  CachedActivity.java
  */
-package com.wise;
+package com.wise.gui;
 
 import java.io.File;
 //import java.io.IOException;

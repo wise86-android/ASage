@@ -17,11 +17,10 @@
  *   Copyright 2012 Giovanni Visentini 
  */
 
-package com.wise;
+package com.wise.gui;
 
 import android.app.Activity;
 import android.app.LoaderManager;
-import android.content.CursorLoader;
 import android.content.Intent;
 
 import android.content.Loader;
@@ -32,7 +31,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Browser;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -58,6 +56,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+
+import com.wise.R;
+import com.wise.util.FullBookmarks;
+import com.wise.xml.ExtractRssUpdateDate;
 
 /**
  * Fragment that show the list bookmarks
@@ -89,8 +91,8 @@ public class FeedListFragment extends OnlineFragment implements
 
 		iconSize = getResources().getDimensionPixelSize(R.dimen.iconSize_feedItem);
 		int[] showItem = new int[] { R.id.feedItem_name, R.id.feedItem_name };
-		String[] showValue = new String[] { Browser.BookmarkColumns.FAVICON,
-				Browser.BookmarkColumns.TITLE };
+		String[] showValue = new String[] { FullBookmarks.FAVICON,
+				FullBookmarks.TITLE };
 
 		feeds = new SimpleCursorAdapter(this.getActivity(), R.layout.feed_item,
 				null, showValue, showItem, 0);
@@ -237,7 +239,7 @@ public class FeedListFragment extends OnlineFragment implements
 	public Loader<Cursor> onCreateLoader(int id, Bundle arg1) {
 		switch (id) {
 		case CURSOR_BOOKMARK:
-			return new CursorLoader(this.getActivity(),
+			/*return new CursorLoader(this.getActivity(),
 					android.provider.Browser.BOOKMARKS_URI, new String[] {
 							Browser.BookmarkColumns._ID,
 							Browser.BookmarkColumns.FAVICON,
@@ -248,6 +250,8 @@ public class FeedListFragment extends OnlineFragment implements
 							"("	+ Browser.BookmarkColumns.BOOKMARK + "=1)",
 							//order by title
 							null,Browser.BookmarkColumns.TITLE);
+							*/
+			return new FullBookmarks(this.getActivity());
 		default:
 			return null;
 		}
@@ -259,10 +263,10 @@ public class FeedListFragment extends OnlineFragment implements
 	 * @see android.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.content.Loader, java.lang.Object)
 	 */
 	public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
-		favIconColumn = c.getColumnIndex(Browser.BookmarkColumns.FAVICON);
-		titleColumn = c.getColumnIndex(Browser.BookmarkColumns.TITLE);
-		urlColumn = c.getColumnIndex(Browser.BookmarkColumns.URL);
-		lastVisitColumn = c.getColumnIndex(Browser.BookmarkColumns.DATE);
+		favIconColumn = c.getColumnIndex(FullBookmarks.FAVICON);
+		titleColumn = c.getColumnIndex(FullBookmarks.TITLE);
+		urlColumn = c.getColumnIndex(FullBookmarks.URL);
+		lastVisitColumn = c.getColumnIndex(FullBookmarks.LAST_VISIT);
 		rssBookmark = c;
 		//build the listview
 		feeds.swapCursor(c);

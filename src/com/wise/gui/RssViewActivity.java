@@ -23,7 +23,11 @@
 /**
 RssViewActivity.java
 */
-package com.wise;
+package com.wise.gui;
+
+import com.wise.R;
+import com.wise.R.id;
+import com.wise.R.layout;
 
 import android.os.Bundle;
 

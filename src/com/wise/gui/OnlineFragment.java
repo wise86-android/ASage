@@ -23,7 +23,10 @@
 /**
 onlineFragment.java
 */
-package com.wise;
+package com.wise.gui;
+
+import com.wise.R;
+import com.wise.R.array;
 
 import android.app.Fragment;
 import android.content.Context;
