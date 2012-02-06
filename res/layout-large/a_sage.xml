@@ -8,10 +8,10 @@
         android:id="@+id/feed_list_fragment"
         android:layout_width="@dimen/list_width"
         android:layout_height="match_parent"
-        class="com.wise.FeedListFragment" />
+        class="com.wise.gui.FeedListFragment" />
 
     <fragment
-        class="com.wise.RssViewFragment"
+        class="com.wise.gui.RssViewFragment"
         android:id="@+id/rss_view_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
