@@ -37,14 +37,13 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import com.wise.R;
-import com.wise.R.id;
-import com.wise.R.layout;
-import com.wise.R.raw;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -99,7 +98,9 @@ public class RssViewFragment extends OnlineFragment {
 	/*we use onStart for be secure that the webView is initialized */
 	public void onStart() {
 		super.onStart();
-		browser.setWebViewClient(new WebClientManager());
+		SharedPreferences pref =PreferenceManager.getDefaultSharedPreferences(getActivity());
+		browser.setWebViewClient(
+				new WebClientManager(pref.getBoolean("useExternalBrowser",true)));
 	}
 	
     @Override
@@ -200,14 +201,22 @@ public class RssViewFragment extends OnlineFragment {
 	 *used for open a link into the default browser instead of using the fragment
 	 */
 	private class WebClientManager extends WebViewClient {
-
+		
+		private boolean useExternalBrowser;
+		
+		public WebClientManager(boolean useExternalBrowser){
+			this.useExternalBrowser=useExternalBrowser;
+		}
+		
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
-			Log.d(TAG, "Open link: " + url);
-
-			Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-			view.getContext().startActivity(i);
-
+			
+			if(useExternalBrowser){
+				browser.loadUrl(url);
+			}else{
+				Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+				view.getContext().startActivity(i);
+			}
 			return true;
 		}
 

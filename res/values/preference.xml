@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="General_externalBrowser_title">Use external Browser</string>
+    <string name="General_externalBrowser_summary">chose if you want open the new in a external browser or not</string>
+    <string name="General">General</string>
+    <string name="preferenceMenuItem">Settings</string>
+    <string name="General_summary">""</string>
+    
+    
+</resources>

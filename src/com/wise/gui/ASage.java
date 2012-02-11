@@ -20,9 +20,11 @@
 package com.wise.gui;
 
 import com.wise.R;
-import com.wise.R.layout;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 /**
  * Main class of the project
@@ -30,6 +32,9 @@ import android.os.Bundle;
  */
 public class ASage extends CachedActivity {
 
+	static final String SHARED_PROPRIETIES ="com.wise.Asage";
+	
+	private MenuItem preference;
 	/**
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
 	 */
@@ -39,5 +44,25 @@ public class ASage extends CachedActivity {
 		
 		setContentView(R.layout.a_sage);
 	}
-
+	
+	public boolean onOptionsItemSelected (MenuItem item){
+		if(item.equals(preference)){
+			startPreferenceActivity();
+			return true;
+		}//else
+		return false;
+	}
+	
+	public boolean onCreateOptionsMenu (Menu menu){
+		
+		preference= menu.add(R.string.preferenceMenuItem);
+		
+		return true;
+		
+	}
+	
+	private void startPreferenceActivity(){
+		Intent i = new Intent(this,Preference.class);
+		startActivity(i);
+	}
 }
