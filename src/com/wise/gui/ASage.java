@@ -31,8 +31,6 @@ import android.view.MenuItem;
  * @author Giovanni Visentini
  */
 public class ASage extends CachedActivity {
-
-	static final String SHARED_PROPRIETIES ="com.wise.Asage";
 	
 	private MenuItem preference;
 	/**

@@ -71,8 +71,6 @@ public class RssViewFragment extends OnlineFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Log.d(TAG, "fragment");
-
 		try {
 			mRss2Html = TransformerFactory.newInstance().newTransformer(
 					new StreamSource(this.getResources().openRawResource(
