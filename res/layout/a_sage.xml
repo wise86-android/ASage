@@ -2,7 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal" 
-    android:id="@+id/feed_list_contaner">
+    android:orientation="horizontal">
 
+    <LinearLayout
+        android:id="@+id/feed_list_contaner"
+        android:layout_width="@dimen/list_width"
+        android:layout_height="match_parent"
+     />
+    
 </LinearLayout>
