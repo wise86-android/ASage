@@ -41,10 +41,7 @@ import org.xml.sax.XMLReader;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
@@ -52,8 +49,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Browser;
-import android.provider.BrowserContract.Bookmarks;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -63,14 +58,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.CursorTreeAdapter;
-import android.widget.ExpandableListView;
+
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import com.wise.R;
-import com.wise.util.FullBookmarks;
 import com.wise.util.RssFeedsDB;
 import com.wise.xml.ExtractRssUpdateDate;
 
@@ -172,6 +165,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
         
         
         feedsList = (ListView) v.findViewById(R.id.list_feed);
+        Log.d(TAG, "LIST: "+feedsList+" feeds "+feeds);
         feedsList.setAdapter(feeds);
         feedsList.setOnItemClickListener(this);
         

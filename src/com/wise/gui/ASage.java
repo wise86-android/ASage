@@ -20,12 +20,9 @@
 package com.wise.gui;
 
 import com.wise.R;
-import com.wise.util.BookmarkFolder;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -43,8 +40,9 @@ public class ASage extends CachedActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setContentView(R.layout.a_sage);
 		this.getFragmentManager().beginTransaction().add(R.id.feed_list_contaner, new FeedExplorerFragment()).commit();
+		setContentView(R.layout.a_sage);
+		
 				
 	}
 	

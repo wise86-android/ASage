@@ -26,11 +26,9 @@ RssFeeds.java
 package com.wise.util;
 
 import android.content.Context;
-import android.content.CursorLoader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
 /**
@@ -137,7 +135,6 @@ public class RssFeedsDB{
 	     */
 	    private static class FeedDBOpenHelper extends SQLiteOpenHelper {
 
-	        private final Context mHelperContext;
 	        private SQLiteDatabase mDatabase;
 
 	        private static final String CREATE_FOLDER_TABLE =
@@ -166,7 +163,6 @@ public class RssFeedsDB{
 	        
 	        FeedDBOpenHelper(Context context) {
 	            super(context, DATABASE_NAME, null, DATABASE_VERSION);
-	            mHelperContext = context;
 	        }
 
 	        @Override

@@ -43,7 +43,7 @@ import android.util.Log;
  * 
  * @author Giovanni Visentini
  */
-public class CachedActivity extends Activity {
+public abstract class CachedActivity extends Activity {
 
 	private final long httpCacheSize = 2 * 1024 * 1024; // 2mb
 	private final static String TAG = "CachedActivity";
