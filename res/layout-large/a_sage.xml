@@ -2,13 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:id="@+id/asage_activity">
 
-    <fragment
-        android:id="@+id/feed_list_fragment"
+    <LinearLayout
+        android:id="@+id/feed_list_contaner"
         android:layout_width="@dimen/list_width"
         android:layout_height="match_parent"
-        class="com.wise.gui.FeedListFragment" />
+     />
 
     <fragment
         class="com.wise.gui.RssViewFragment"
