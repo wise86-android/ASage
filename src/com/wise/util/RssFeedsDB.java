@@ -103,7 +103,7 @@ public class RssFeedsDB{
 	    
 	    public Cursor getAllFolder(int parentID){
 	        
-	    	final String getAllFeedQuery ="SELECT _id,FolderName,ParentId  FROM Folder WHERE ParentId="+parentID+" ORDER BY FolderName";
+	    	final String getAllFeedQuery ="SELECT _id,FolderName,ParentId  FROM Folder WHERE ParentId="+parentID+" AND _id<>1 ORDER BY FolderName";
 	    	
 	    	SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
 	    	Log.d(TAG,"Db Exec:\n"+getAllFeedQuery);
