@@ -107,6 +107,8 @@ public class RssViewFragment extends OnlineFragment {
         View v = inflater.inflate(R.layout.rss_view, container, false);
         
         browser = (WebView) v.findViewById(R.id.browser);
+        //enable pic-to zoom for the pages
+        browser.getSettings().setBuiltInZoomControls(true);
         showDefaultContentBrowser(); 
         return v;
     }
