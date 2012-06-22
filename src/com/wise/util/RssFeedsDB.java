@@ -58,6 +58,8 @@ public class RssFeedsDB{
 	    public static final String FEED_FOLDER="folderId";
 
 	    public static final String ELEMENT_IS_FEED="isFeed";
+	    public static final String ELEMENT_ID="_id";
+	    public static final String ELEMENT_NAME="Name";
 	    
 	    public static final String FOLDER_ID="_id";
 	    public static final String FOLDER_NAME="FolderName";
@@ -66,65 +68,102 @@ public class RssFeedsDB{
 	    public static final int FOLDER_ROOT_ID =1;
 	    
 
-	    /**
-	     * Constructor
-	     * @param context The Context within which to work, used to create the DB
-	     */
-	    public RssFeedsDB(Context context) {
-	        mDatabaseOpenHelper = new FeedDBOpenHelper(context);
-	    }
-
-	  
-	    /**
-	     * Performs a database query.
-	     * @param selection The selection clause
-	     * @param selectionArgs Selection arguments for "?" components in the selection
-	     * @param columns The columns to return
-	     * @return A Cursor over all rows matching the query
-	     */
-	    public Cursor getAllFeed() {
-	    	
-	    	final String getAllFeedQuery ="SELECT _id,Name,Url,FavIcon,LastVisitDate  FROM Feed ORDER BY Name";
-	    	
-	    	SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
-	    	Log.d(TAG,"Db Exec:\n"+getAllFeedQuery);
-	        return db.rawQuery(getAllFeedQuery,null);
-	    }
-
-
-	    public Cursor getAllFeed(int groupId) {
-	    	
-	    	final String getAllFeedQuery ="SELECT _id,Name,Url,FavIcon,LastVisitDate  FROM Feed WHERE folderId="+groupId+" ORDER BY Name";
-	    	
-	    	SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
-	    	Log.d(TAG,"Db Exec:\n"+getAllFeedQuery);
-	        return db.rawQuery(getAllFeedQuery,null);
-	    }
+	    private static final String SelectElement =
+	    		"SELECT 1 AS "+ELEMENT_IS_FEED+","+ FEED_ID+" AS "+ELEMENT_ID+","+ FEED_NAME+" AS "+ELEMENT_NAME+","+ FEED_URL+","+ FEED_FAVICON+","+ FEED_LASTACCESS +","+FEED_FOLDER + 
+				" FROM "+FEED_TABLE+
+				" WHERE "+FEED_FOLDER +"= ?"+
+			" UNION "+
+				" SELECT 0 AS "+ELEMENT_IS_FEED +","+FOLDER_ID +" AS "+ ELEMENT_ID+", "+FOLDER_NAME +" AS "+ELEMENT_NAME+", "+FOLDER_PARENT+
+				" AS "+FEED_FOLDER+", NULL AS "+FEED_URL+",NULL AS "+FEED_FAVICON+", NULL AS "+FEED_LASTACCESS +
+				" FROM "+FOLDER_TABLE+
+				" WHERE "+FOLDER_PARENT+"= ? AND "+FOLDER_ID +"<>"+FOLDER_PARENT+
+			" ORDER BY "+ELEMENT_IS_FEED+", "+ELEMENT_NAME;
 	    
-	    public Cursor getAllFolder(int parentID){
-	        
-	    	final String getAllFeedQuery ="SELECT _id,FolderName,ParentId  FROM Folder WHERE ParentId="+parentID+" AND _id<>1 ORDER BY FolderName";
-	    	
-	    	SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
-	    	Log.d(TAG,"Db Exec:\n"+getAllFeedQuery);
-	        return db.rawQuery(getAllFeedQuery,null);
-	    }
+	    private static final String getAllFolder =
+	    		"SELECT "+FOLDER_ID+","+FOLDER_NAME+","+FOLDER_PARENT +
+	    		"  FROM "+FOLDER_TABLE+" WHERE "+FOLDER_PARENT+"=? AND "+FOLDER_ID+"<>"+FOLDER_ROOT_ID +
+	    		"  ORDER BY "+FOLDER_NAME;
 	    
-	    public Cursor getAllElement(int parent){
-	    	
-	    	String s = "SELECT CASE WHEN "+FEED_TABLE+"."+FEED_ID+" IS NOT NULL THEN "+FEED_TABLE+"."+FEED_ID+" ELSE "+FOLDER_TABLE+"."+FOLDER_ID+" END AS _id,"+
-	    		   "CASE WHEN "+FEED_TABLE+"."+FEED_ID+" IS NOT NULL THEN 1 ELSE 0 END AS isFeed, "+
-	    		   FOLDER_TABLE+"."+FOLDER_NAME+", "+FEED_TABLE+"."+FEED_NAME+", "+FEED_TABLE+"."+FEED_URL+","+FEED_TABLE+"."+FEED_FAVICON+
-	    		   " FROM "+FOLDER_TABLE+" LEFT OUTER JOIN "+FEED_TABLE+" ON "+FEED_TABLE+"."+FEED_FOLDER+" = "+FOLDER_TABLE+"."+FOLDER_ID+" AND "+FOLDER_TABLE+"."+FOLDER_ID+" = ?"+
-	    		   " ORDER BY "+FOLDER_TABLE+"."+FOLDER_NAME+","+FEED_TABLE+"."+FEED_NAME;
-	    	
-	    	//SELECT FOLDER_TABLE.Id as _id, FOLDER NAME FEED
-	    	
-	    	SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
-	    	Log.d(TAG,"Db Exec:\n"+s);
-	        return db.rawQuery(s,new String[]{""+parent});
-	    	
-	    }
+	    private static final String getFeed =
+	    		" SELECT "+FEED_ID+","+FEED_NAME+","+FEED_URL+","+FEED_FAVICON+","+FEED_LASTACCESS+
+	    		" FROM "+FEED_TABLE+
+	    		" WHERE "+FEED_ID+"=?" +
+	    		" ORDER BY "+FEED_NAME;
+	    
+	    private static final String getAllFeedQuery =
+	    		" SELECT "+FEED_ID+","+FEED_NAME+","+FEED_URL+","+FEED_FAVICON+","+FEED_LASTACCESS+
+	    		" FROM "+FEED_TABLE+
+	    		" ORDER BY "+FEED_NAME;
+
+	/**
+	 * Constructor
+	 * 
+	 * @param context
+	 *            The Context within which to work, used to create the DB
+	 */
+	public RssFeedsDB(Context context) {
+		mDatabaseOpenHelper = new FeedDBOpenHelper(context);
+	}
+
+	/**
+	 * @return all the feed in the database
+	 */
+	public Cursor getAllFeed() {
+
+		SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
+		Log.d(TAG, "Db Exec:\n" + getAllFeedQuery);
+		return db.rawQuery(getAllFeedQuery, null);
+	}
+
+	/**
+	 * 
+	 * @param groupId
+	 *            group number
+	 * @return all the feed in the same group
+	 */
+	public Cursor getFeed(int groupId) {
+
+		SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
+		Log.d(TAG, "Db Exec:\n" + getFeed + "\ngrupId:" + groupId);
+		return db.rawQuery(getFeed, new String[] { "" + groupId });
+	}
+
+	/**
+	 * @return the feed in the root group
+	 */
+	public Cursor getAllFolder() {
+		return getAllFolder(FOLDER_ROOT_ID);
+	}
+
+	/**
+	 * @param parentID group id
+	 * @return return all subgroup/folder inside a group
+	 */
+	public Cursor getAllFolder(int parentID) {
+
+		SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
+		Log.d(TAG, "Db Exec:\n" + getAllFolder);
+		return db.rawQuery(getAllFolder, new String[] { "" + parentID });
+	}
+
+
+	/**
+	 * return all the elements inside a group id,
+	 * is the union of folder/group and feed
+	 * @return all the elements inside a group id
+	 */
+	public Cursor getAllElement() {
+		return getAllElement(FOLDER_ROOT_ID);
+	}
+
+	public Cursor getAllElement(int parentID) {
+
+		SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
+		Log.d(TAG, "Db Exec:\n" + SelectElement);
+		Log.d(TAG, "Db parent:\n" + parentID);
+		return db.rawQuery(SelectElement, new String[] { "" + parentID,
+				"" + parentID });
+	}
 	    
 	    
 	    

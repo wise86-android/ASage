@@ -83,22 +83,20 @@ public class FeedExplorerFragment extends OnlineFragment implements
 	private RssFeedsDB rssDb;
 	
 	private int folderId;
-	private Cursor rssInFolder;
-	private Cursor groupInFolder;
+	private Cursor elementInFolder;
 	
-	private int rssIdColumn;
 	private int rssFavIconColumn;
-	private int rssTitleColumn;
 	private int rssUrlColumn;
 	private int rssLastVisitColumn;
 	
-	private int folderNameColumn;
-	private int folderIdColumn;
 	
-	private ListView feedsList;
-	private ListView folderList;
-	private SimpleCursorAdapter feeds;
-	private SimpleCursorAdapter folders;
+	private int elementIdColumn;
+	private int elementNameColumn;
+	private int elementIsFeedColumn;
+	
+	private ListView elementList;
+	private SimpleCursorAdapter elementsAdapter;
+
 	
 	private int iconSize;
 	
@@ -125,53 +123,34 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		String[] showValueRss = new String[] { RssFeedsDB.FEED_FAVICON,
 				RssFeedsDB.FEED_NAME};
 
-		feeds = new SimpleCursorAdapter(this.getActivity(), R.layout.feed_item,
+		elementsAdapter = new SimpleCursorAdapter(this.getActivity(), R.layout.feed_item,
 				null, showValueRss, showItemRss, 0);
-		feeds.setViewBinder(new BuildItemView());
+		elementsAdapter.setViewBinder(new BuildItemView());
 		
-		int[] showItemGroup = new int[] {R.id.feedGroup_name};
-		String[] showValueGroup = new String[] {RssFeedsDB.FOLDER_NAME};
-		folders= new SimpleCursorAdapter(this.getActivity(), R.layout.feed_folder,
-				null, showValueGroup, showItemGroup, 0);
-
 		// start loading the cursor
 		//this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 		rssDb = new RssFeedsDB(this.getActivity());
-			
-		rssInFolder = rssDb.getAllFeed(folderId);
 		
-		
-		Log.d(TAG, "N FEED ="+rssInFolder.getCount());
-		rssFavIconColumn = rssInFolder.getColumnIndex(RssFeedsDB.FEED_FAVICON);
-		rssTitleColumn = rssInFolder.getColumnIndex(RssFeedsDB.FEED_NAME);
-		rssUrlColumn = rssInFolder.getColumnIndex(RssFeedsDB.FEED_URL);
-		rssLastVisitColumn = rssInFolder.getColumnIndex(RssFeedsDB.FEED_LASTACCESS);
-		
-		feeds.swapCursor(rssInFolder);
-		
-		groupInFolder = rssDb.getAllFolder(folderId);
-		folderIdColumn = groupInFolder.getColumnIndex(RssFeedsDB.FOLDER_ID);
-		folderNameColumn = groupInFolder.getColumnIndex(RssFeedsDB.FOLDER_NAME);
-		
-		Log.d(TAG, "N fodler ="+groupInFolder.getCount());
-		folders.swapCursor(groupInFolder);
+		elementInFolder= rssDb.getAllElement(folderId);
+		elementIdColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_ID);
+		elementNameColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_NAME);
+		elementIsFeedColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_IS_FEED);
+		rssFavIconColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_FAVICON);
+		rssUrlColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_URL);
+		elementsAdapter.swapCursor(elementInFolder);
+		Log.d(TAG, "N Element ="+elementInFolder.getCount());
 		
 	}
 	
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.feed_explorer, container, false);
+        View v = inflater.inflate(R.layout.feed_list, container, false);
+               
+        elementList = (ListView) v.findViewById(R.id.list_feed);
         
-        
-        feedsList = (ListView) v.findViewById(R.id.list_feed);
-        Log.d(TAG, "LIST: "+feedsList+" feeds "+feeds);
-        feedsList.setAdapter(feeds);
-        feedsList.setOnItemClickListener(this);
-        
-        folderList = (ListView) v.findViewById(R.id.list_group);
-        folderList.setAdapter(folders);
-        folderList.setOnItemClickListener(this);
+        elementList.setAdapter(elementsAdapter);
+        elementList.setOnItemClickListener(this);
         
         return v;
     }
@@ -221,7 +200,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		Log.d(TAG, "click checkSync\n");
 		//start the thread
 		if(isOnline())
-			new CheckRssUpdate(this.getActivity(),feedsList).execute(rssInFolder);
+			new CheckRssUpdate(this.getActivity(),elementList).execute(elementInFolder);
 		else{
 			showError(ERROR_NETWORK);
 		}
@@ -239,8 +218,8 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 			TextView name = (TextView) view
 					.findViewById(R.id.feedItem_name);
-
-			if (columnIndex == rssFavIconColumn) {
+			boolean isFeed = (cursor.getInt(elementIsFeedColumn)==1);
+			if (columnIndex == rssFavIconColumn && isFeed) {
 				byte[] image = cursor.getBlob(rssFavIconColumn);
 				Drawable d;
 				if (image != null){
@@ -253,8 +232,8 @@ public class FeedExplorerFragment extends OnlineFragment implements
 				
 				d.setBounds(0, 0, iconSize, iconSize);
 				name.setCompoundDrawables(d, null,null,null);
-			} else if (columnIndex == rssTitleColumn) {
-				name.setText(cursor.getString(rssTitleColumn));
+			} else if (columnIndex == elementNameColumn) {
+				name.setText(cursor.getString(elementNameColumn));
 			}else{
 				return false;
 			}
@@ -265,36 +244,27 @@ public class FeedExplorerFragment extends OnlineFragment implements
 
 	}
 	
-	private void onClickFeed(View feedItem,int position){
+	private void onClickFeed(View feedItem){
 		TextView name = (TextView) feedItem.findViewById(R.id.feedItem_name);
 		name.setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
-
-		rssInFolder.moveToPosition(position);
-		Log.d(TAG,"Click position: "+position+" url: "+rssInFolder.moveToPosition(position));
 		
 		RssViewFragment rssView = (RssViewFragment) getFragmentManager().findFragmentById(R.id.rss_view_fragment);
 		
 		if(rssView!=null){
-			rssView.viewRss(rssInFolder.getString(rssUrlColumn));
+			rssView.viewRss(elementInFolder.getString(rssUrlColumn));
 		}else{
 			Log.d(TAG,"start intent");
 			Intent i = new Intent(this.getActivity(),RssViewActivity.class);
-			i.putExtra(RssViewActivity.RSS_URL,rssInFolder.getString(rssUrlColumn));
+			i.putExtra(RssViewActivity.RSS_URL,elementInFolder.getString(rssUrlColumn));
 			startActivity(i);
 		}
 
 	}
 
-	private void onClickGroup(View groupItem,int position){
-	
+	private void onClickGroup(View groupItem){
 		
-		
-		boolean ret = groupInFolder.moveToPosition(position);
-		
-		Log.d(TAG, "position "+position+" size "+groupInFolder.getCount()+"move "+ret);
-		
-		int newRoot = groupInFolder.getInt(folderIdColumn);
-		
+		int newRoot = elementInFolder.getInt(elementIdColumn);
+		Log.d(TAG, "newRoot "+newRoot +" elemet "+folderId );
 		Fragment f = new FeedExplorerFragment(newRoot);
 		
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
@@ -310,10 +280,11 @@ public class FeedExplorerFragment extends OnlineFragment implements
 	 */
 	@Override
 	public void onItemClick(AdapterView<?> l, View v, int position, long id) {
-		if (l==feedsList)
-			onClickFeed(v,position);
+		elementInFolder.moveToPosition(position);
+		if (elementInFolder.getInt(elementIsFeedColumn)==1)
+			onClickFeed(v);
 		else
-			onClickGroup(v,position);
+			onClickGroup(v);
 	
 	}
 	/**
