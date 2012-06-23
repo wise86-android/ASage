@@ -34,6 +34,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+
 //import android.net.http.HttpResponseCache;
 
 /**
@@ -49,7 +50,7 @@ public abstract class CachedActivity extends Activity {
 	private final static String TAG = "CachedActivity";
 
 	private final static String preICSCache = "com.integralblue.httpresponsecache.HttpResponseCache";
-	private final static String postICSCache = "com.integralblue.httpresponsecache.HttpResponseCache";
+	private final static String postICSCache = "android.net.http.HttpResponseCache";
 
 	private Class<?> HttpResponseCache;
 
@@ -57,7 +58,7 @@ public abstract class CachedActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		try {
-			// we load the sistem class or the backport ones
+		// we load the system class or the backport ones
 			if (android.os.Build.VERSION.SDK_INT > 
 					android.os.Build.VERSION_CODES.HONEYCOMB_MR2) {
 				HttpResponseCache = Class.forName(postICSCache);
@@ -65,7 +66,7 @@ public abstract class CachedActivity extends Activity {
 				HttpResponseCache = Class.forName(preICSCache);
 			}// if-else
 			Method getInstalled = HttpResponseCache.getMethod("getInstalled",
-					new Class[] { HttpResponseCache });
+					(Class<?>[])null);
 
 			if (getInstalled.invoke(null, (Object[]) null) == null) {
 				setHttpCache();
@@ -79,8 +80,9 @@ public abstract class CachedActivity extends Activity {
 
 	protected void setHttpCache() {
 		try {
+			
 			Method install = HttpResponseCache.getMethod("install",
-					new Class[] { File.class, Long.class });
+					File.class, long.class);
 			try {
 				File httpCacheDir = new File(getCacheDir(), "http");
 				install.invoke(null,
@@ -89,7 +91,7 @@ public abstract class CachedActivity extends Activity {
 				Log.i(TAG,
 						"HTTP response cache installation failed:"
 								+ e.getTargetException());
-			}// try-catch
+			}// try-catch*/
 		} catch (Exception e) {
 			Log.e(TAG, "Reflection Error: HttpResponseCache " + e);
 			Log.i(TAG, "Http Cache Disabled");
@@ -100,7 +102,7 @@ public abstract class CachedActivity extends Activity {
 		super.onStop();
 		try {
 			Method getInstalled = HttpResponseCache.getMethod("getInstalled",
-					new Class[] { HttpResponseCache });
+					(Class<?>[])null);
 
 			Object installedCache = getInstalled.invoke(null, (Object[]) null);
 			if (installedCache != null) {
@@ -112,5 +114,6 @@ public abstract class CachedActivity extends Activity {
 			Log.e(TAG, "Reflection Error: HttpResponseCache " + e);
 			Log.i(TAG, "Http Cache Deleting Error");
 		}// try-catch
+		
 	}
 }
