@@ -82,7 +82,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
 
 	private RssFeedsDB rssDb;
 	
-	private int folderId;
+	private long folderId;
 	private Cursor elementInFolder;
 	
 	private int rssFavIconColumn;
@@ -104,7 +104,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		this(1);
 	}
 
-	public FeedExplorerFragment(int rootId){
+	public FeedExplorerFragment(long rootId){
 		folderId=rootId;
 	}
 	
@@ -113,7 +113,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		super.onCreate(savedInstanceState);
 		
 		if(savedInstanceState!=null)
-			folderId = savedInstanceState.getInt(SALVED_GROUP_ID, 1);
+			folderId = savedInstanceState.getLong(SALVED_GROUP_ID, 1);
 		
 		
 		this.setHasOptionsMenu(true);
@@ -130,7 +130,6 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		// start loading the cursor
 		//this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 		rssDb = new RssFeedsDB(this.getActivity());
-		
 		elementInFolder= rssDb.getAllElement(folderId);
 		elementIdColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_ID);
 		elementNameColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_NAME);
@@ -263,7 +262,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
 
 	private void onClickGroup(View groupItem){
 		
-		int newRoot = elementInFolder.getInt(elementIdColumn);
+		long newRoot = elementInFolder.getLong(elementIdColumn);
 		Log.d(TAG, "newRoot "+newRoot +" elemet "+folderId );
 		Fragment f = new FeedExplorerFragment(newRoot);
 		

@@ -25,6 +25,7 @@ RssFeeds.java
 */
 package com.wise.util;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -121,7 +122,7 @@ public class RssFeedsDB{
 	 *            group number
 	 * @return all the feed in the same group
 	 */
-	public Cursor getFeed(int groupId) {
+	public Cursor getFeed(long groupId) {
 
 		SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
 		Log.d(TAG, "Db Exec:\n" + getFeed + "\ngrupId:" + groupId);
@@ -139,7 +140,7 @@ public class RssFeedsDB{
 	 * @param parentID group id
 	 * @return return all subgroup/folder inside a group
 	 */
-	public Cursor getAllFolder(int parentID) {
+	public Cursor getAllFolder(long parentID) {
 
 		SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
 		Log.d(TAG, "Db Exec:\n" + getAllFolder);
@@ -156,7 +157,7 @@ public class RssFeedsDB{
 		return getAllElement(FOLDER_ROOT_ID);
 	}
 
-	public Cursor getAllElement(int parentID) {
+	public Cursor getAllElement(long parentID) {
 
 		SQLiteDatabase db = mDatabaseOpenHelper.getReadableDatabase();
 		Log.d(TAG, "Db Exec:\n" + SelectElement);
@@ -164,10 +165,30 @@ public class RssFeedsDB{
 		return db.rawQuery(SelectElement, new String[] { "" + parentID,
 				"" + parentID });
 	}
+	
+	public long insertFolder(String name){
+		return insertFolder(name,FOLDER_ROOT_ID);
+	}
 	    
+	public long insertFolder(String name, long parentId){
+		SQLiteDatabase db = mDatabaseOpenHelper.getWritableDatabase();
+		ContentValues row = new ContentValues(2);
+		row.put(FOLDER_NAME,name);
+		row.put(FOLDER_PARENT,parentId);
+		return db.insert(FOLDER_TABLE, null, row);
+	}
 	    
-	    
-	    
+	
+	public long insertFeed(long parentId,String name,String url){
+		SQLiteDatabase db = mDatabaseOpenHelper.getWritableDatabase();
+		ContentValues row = new ContentValues(2);
+		row.put(FEED_FOLDER, parentId);
+		row.put(FEED_NAME,name);
+		row.put(FEED_URL, url);
+		return db.insert(FEED_TABLE,null, row);
+		
+		
+	}
 	    
 	    /**
 	     * This creates/opens the database.
