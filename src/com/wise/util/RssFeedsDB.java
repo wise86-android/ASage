@@ -25,6 +25,16 @@ RssFeeds.java
 */
 package com.wise.util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Stack;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -66,7 +76,7 @@ public class RssFeedsDB{
 	    public static final String FOLDER_NAME="FolderName";
 	    public static final String FOLDER_PARENT="ParentId";
 	    
-	    public static final int FOLDER_ROOT_ID =1;
+	    public static final long FOLDER_ROOT_ID =1;
 	    
 
 	    private static final String SelectElement =
@@ -189,6 +199,55 @@ public class RssFeedsDB{
 		
 		
 	}
+	
+	public void importOpml(File opmlFile){
+    	XmlPullParserFactory factory;
+    	Stack<Long> folder = new Stack<Long>();
+    	folder.push(FOLDER_ROOT_ID);
+		try {
+			factory = XmlPullParserFactory.newInstance();
+			factory.setNamespaceAware(true);
+			XmlPullParser xpp = factory.newPullParser();
+			xpp.setInput(new FileReader(opmlFile));
+			int eventType = xpp.getEventType();
+			while (eventType != XmlPullParser.END_DOCUMENT) {
+				
+				switch (eventType){
+					case XmlPullParser.START_TAG:
+						Log.w(TAG, "Start Tag "+xpp.getName());
+						if(xpp.getName().equals("outline")){
+							Log.w(TAG, "Stck size: "+folder.size());
+							if(xpp.getAttributeValue (null,"xmlUrl")!=null){
+								//we have found a feeds
+								insertFeed(folder.peek(),xpp.getAttributeValue (null,"text"),
+										xpp.getAttributeValue (null,"xmlUrl"));
+							}else{ // is a directory
+								long newDir = insertFolder(xpp.getAttributeValue(null,"text"),folder.peek());
+								folder.push(newDir);
+							}//if
+						}//if outline
+						break;
+					case XmlPullParser.END_TAG:
+						if(xpp.getName().equals("outline") && xpp.getAttributeValue (null,"xmlUrl")==null){
+							folder.pop();
+						}
+						break;
+				}//switch
+				eventType = xpp.next();
+			}//while
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	    	
+    	
+    }
+	
 	    
 	    /**
 	     * This creates/opens the database.
@@ -257,4 +316,6 @@ public class RssFeedsDB{
 	        }
 	    }
 
+	    
+	    
 	}

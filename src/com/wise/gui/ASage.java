@@ -19,9 +19,13 @@
 
 package com.wise.gui;
 
+import java.io.File;
+
 import com.wise.R;
+import com.wise.util.RssFeedsDB;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,6 +43,12 @@ public class ASage extends CachedActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		Intent intent = this.getIntent();
+		if(intent!=null && intent.getAction()==Intent.ACTION_VIEW){
+			Uri feeds = intent.getData();
+			new RssFeedsDB(this).importOpml(new File(feeds.getPath()));
+		}
 		
 		this.getFragmentManager().beginTransaction().add(R.id.feed_list_contaner, new FeedExplorerFragment()).commit();
 		setContentView(R.layout.a_sage);
