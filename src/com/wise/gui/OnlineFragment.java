@@ -27,6 +27,7 @@ package com.wise.gui;
 
 import com.wise.R;
 
+import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -38,6 +39,7 @@ import android.widget.Toast;
  * @author wise
  *
  */
+@SuppressLint("ShowToast")
 public class OnlineFragment extends Fragment {
 
 	public static String ERROR_MESSAGE[];
