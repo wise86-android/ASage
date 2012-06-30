@@ -25,20 +25,8 @@ FeedExplorer.java
 */
 package com.wise.gui;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.Date;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
@@ -47,7 +35,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -65,9 +52,7 @@ import android.widget.TextView;
 
 import com.wise.R;
 import com.wise.util.RssFeedsDB;
-import com.wise.xml.ExtractRssUpdateDate;
-
-
+import com.wise.util.SearchUpdateFeed;
 
 /**
  * @author wise
@@ -87,12 +72,12 @@ public class FeedExplorerFragment extends OnlineFragment implements
 	
 	private int rssFavIconColumn;
 	private int rssUrlColumn;
-	private int rssLastVisitColumn;
 	
 	
 	private int elementIdColumn;
 	private int elementNameColumn;
 	private int elementIsFeedColumn;
+	private int elementHaveUpdateColumn;
 	
 	private ListView elementList;
 	private SimpleCursorAdapter elementsAdapter;
@@ -130,12 +115,17 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		// start loading the cursor
 		//this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 		rssDb = new RssFeedsDB(this.getActivity());
+		
+		
+		
 		elementInFolder= rssDb.getAllElement(folderId);
 		elementIdColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_ID);
 		elementNameColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_NAME);
 		elementIsFeedColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_IS_FEED);
+		elementHaveUpdateColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_HAVEUPDATE);
 		rssFavIconColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_FAVICON);
 		rssUrlColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_URL);
+		
 		elementsAdapter.swapCursor(elementInFolder);
 		Log.d(TAG, "N Element ="+elementInFolder.getCount());
 		
@@ -162,18 +152,21 @@ public class FeedExplorerFragment extends OnlineFragment implements
 	 */
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.feed_list, menu);
 	}
 	
 
-/**
+	/**
 	 * @see android.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
+		Log.d(TAG, "menu");
 		switch (item.getItemId()) {
 		case R.id.sync_menu:
+			Log.d(TAG, "sync");
 			checkSync();
 			return true;
 		case R.id.addFeed_menu:
@@ -198,9 +191,9 @@ public class FeedExplorerFragment extends OnlineFragment implements
 	private void checkSync() {
 		Log.d(TAG, "click checkSync\n");
 		//start the thread
-		if(isOnline())
-			new CheckRssUpdate(this.getActivity(),elementList).execute(elementInFolder);
-		else{
+		if(isOnline()){
+			new SearchUpdateFeed(this,rssDb).execute();
+		}else{
 			showError(ERROR_NETWORK);
 		}
 	}
@@ -233,6 +226,9 @@ public class FeedExplorerFragment extends OnlineFragment implements
 				name.setCompoundDrawables(d, null,null,null);
 			} else if (columnIndex == elementNameColumn) {
 				name.setText(cursor.getString(elementNameColumn));
+				Log.d(TAG, cursor.getString(elementNameColumn)+" update: "+cursor.getInt(elementHaveUpdateColumn));
+				if(cursor.getInt(elementHaveUpdateColumn)==1) // yes
+					name.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
 			}else{
 				return false;
 			}
@@ -251,6 +247,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		
 		if(rssView!=null){
 			rssView.viewRss(elementInFolder.getString(rssUrlColumn));
+			rssDb.updateVisitDate(elementInFolder.getLong(elementIdColumn),new Date());
 		}else{
 			Log.d(TAG,"start intent");
 			Intent i = new Intent(this.getActivity(),RssViewActivity.class);
@@ -286,126 +283,5 @@ public class FeedExplorerFragment extends OnlineFragment implements
 			onClickGroup(v);
 	
 	}
-	/**
-	 * scann all the rss for check update
-	 * don't work because the date from the bookmars isn update when you load the feed from the app
-	 */
-	private class CheckRssUpdate extends AsyncTask<Cursor, Integer, Integer> {
 
-		private ListView list;
-		private Activity context;
-
-		/**
-		 * @param lf fragment that show the list to update
-		 */
-		public CheckRssUpdate(Activity c,ListView l) {
-			list = l;
-			context = c;
-		}
-
-		/**
-		 * for each bookmarks load the xml and save the update data,
-		 * after that check if the data is after the last vist
-		 * TODO: save the loaded xml for use it when the user clik in the item view
-		 * @see android.os.AsyncTask#doInBackground(Params[])
-		 */
-		@Override
-		protected Integer doInBackground(Cursor... arg) {
-			int nUpdate = 0;
-			long lastVisitDate;
-			Cursor c = arg[0];
-			int nFeed = c.getCount();
-
-			SAXParserFactory spf = SAXParserFactory.newInstance();
-			SAXParser sp;
-			XMLReader xr = null;
-			try {
-				sp = spf.newSAXParser();
-				xr = sp.getXMLReader();
-
-				/** Create handler to handle XML Tags ( extends DefaultHandler ) */
-				ExtractRssUpdateDate xmlHandler = new ExtractRssUpdateDate();
-				xr.setContentHandler(xmlHandler);
-
-				for (int i = 0; i < nFeed; i++) {
-					c.moveToPosition(i);
-					URL url;
-					try {
-						url = new URL(c.getString(rssUrlColumn));
-						HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();	
-						urlConnection.addRequestProperty("Cache-Control", "no-cache"); // fresh data
-						xr.parse(new InputSource(urlConnection.getInputStream()));
-					} catch (MalformedURLException e) {
-						showError(ERROR_URL,c.getString(rssUrlColumn));
-					} catch (IOException e) {
-						showError(ERROR_NETWORK);
-					} catch (SAXException e) { // early stop of the parser
-
-					}
-
-					lastVisitDate = c.getLong(rssLastVisitColumn);
-
-					if (lastVisitDate < xmlHandler.getLastUpdate().getTime()) {
-						Log.d(TAG, "lastVisit:"+lastVisitDate+" update"+xmlHandler.getLastUpdate().getTime());
-						context.runOnUiThread(new UpdateUi(list, i));
-
-						nUpdate++;
-					}
-
-					publishProgress((int) ((i * 100) / (float) nFeed));
-					
-				}
-
-			} catch (ParserConfigurationException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (SAXException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			return nUpdate;
-		}
-
-		/**
-		 * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-		 */
-		@Override
-		protected void onPostExecute(Integer notUsed) {
-
-		}
-
-		/**
-		 * thread that change change the view of the item,
-		 * the name will be write in bold
-		 */
-		private class UpdateUi implements Runnable {
-
-			private int index;
-			private ListView list;
-
-			/**
-			 * @param l
-			 * @param i
-			 */
-			public UpdateUi(ListView l, int i) {
-				index = i;
-				list = l;
-			}
-
-			/**
-			 * @see java.lang.Runnable#run()
-			 */
-			public void run() {
-				View feedItem = list.getChildAt(index);
-				TextView name = (TextView) feedItem
-						.findViewById(R.id.feedItem_name);
-				name.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-			} //run
-
-		}//updateUi
-
-	}//CheckRssUpdate
-
-	
 }

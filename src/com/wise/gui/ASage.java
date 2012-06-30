@@ -61,7 +61,7 @@ public class ASage extends CachedActivity {
 			startPreferenceActivity();
 			return true;
 		}//else
-		return false;
+		return super.onOptionsItemSelected(item);
 	}
 	
 	public boolean onCreateOptionsMenu (Menu menu){

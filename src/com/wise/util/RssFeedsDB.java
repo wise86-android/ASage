@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Stack;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -41,6 +42,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.util.Pair;
 
 /**
  * @author wise
@@ -54,7 +56,7 @@ public class RssFeedsDB{
 	    private static final String TAG = "FeedDB";
 	    
 	    private static final String DATABASE_NAME = "FeedDB";
-	    private static final int DATABASE_VERSION = 8;
+	    private static final int DATABASE_VERSION = 10;
 
 	    private static final String FEED_TABLE ="Feed";
 	    private static final String FOLDER_TABLE ="Folder";
@@ -65,12 +67,14 @@ public class RssFeedsDB{
 	    public static final String FEED_NAME="Name";
 	    public static final String FEED_URL="Url";
 	    public static final String FEED_FAVICON="FavIcon";
-	    public static final String FEED_LASTACCESS="LastVisitDate";
+	    public static final String FEED_LASTACCESS_DATE="LastVisitDate";
+	    public static final String FEED_UPDATE_DATE="LastUpdateDate";
 	    public static final String FEED_FOLDER="folderId";
 
 	    public static final String ELEMENT_IS_FEED="isFeed";
 	    public static final String ELEMENT_ID="_id";
 	    public static final String ELEMENT_NAME="Name";
+	    public static final String ELEMENT_HAVEUPDATE="haveUpdate";
 	    
 	    public static final String FOLDER_ID="_id";
 	    public static final String FOLDER_NAME="FolderName";
@@ -80,12 +84,18 @@ public class RssFeedsDB{
 	    
 
 	    private static final String SelectElement =
-	    		"SELECT 1 AS "+ELEMENT_IS_FEED+","+ FEED_ID+" AS "+ELEMENT_ID+","+ FEED_NAME+" AS "+ELEMENT_NAME+","+ FEED_URL+","+ FEED_FAVICON+","+ FEED_LASTACCESS +","+FEED_FOLDER + 
+	    		"SELECT 1 AS "+ELEMENT_IS_FEED+","+ FEED_ID+" AS "+ELEMENT_ID+","+ FEED_NAME+" AS "+ELEMENT_NAME+","+ FEED_URL+","+ FEED_FAVICON+","+FEED_FOLDER +
+	    		" , CASE WHEN "+FEED_LASTACCESS_DATE +" < "+FEED_UPDATE_DATE+ " THEN 1 ELSE 0 END AS "+ELEMENT_HAVEUPDATE +
 				" FROM "+FEED_TABLE+
 				" WHERE "+FEED_FOLDER +"= ?"+
 			" UNION "+
 				" SELECT 0 AS "+ELEMENT_IS_FEED +","+FOLDER_ID +" AS "+ ELEMENT_ID+", "+FOLDER_NAME +" AS "+ELEMENT_NAME+", "+FOLDER_PARENT+
-				" AS "+FEED_FOLDER+", NULL AS "+FEED_URL+",NULL AS "+FEED_FAVICON+", NULL AS "+FEED_LASTACCESS +
+				" AS "+FEED_FOLDER+", NULL AS "+FEED_URL+",NULL AS "+FEED_FAVICON+"," +
+						" EXISTS ( SELECT * " +
+											" FROM "+FEED_TABLE+
+											" WHERE "+FEED_FOLDER+"="+FOLDER_TABLE+"."+FOLDER_ID +" AND " +
+													 FEED_LASTACCESS_DATE +" < "+FEED_UPDATE_DATE+
+						" ) AS "+ELEMENT_HAVEUPDATE +
 				" FROM "+FOLDER_TABLE+
 				" WHERE "+FOLDER_PARENT+"= ? AND "+FOLDER_ID +"<>"+FOLDER_PARENT+
 			" ORDER BY "+ELEMENT_IS_FEED+", "+ELEMENT_NAME;
@@ -96,13 +106,15 @@ public class RssFeedsDB{
 	    		"  ORDER BY "+FOLDER_NAME;
 	    
 	    private static final String getFeed =
-	    		" SELECT "+FEED_ID+","+FEED_NAME+","+FEED_URL+","+FEED_FAVICON+","+FEED_LASTACCESS+
+	    		" SELECT "+FEED_ID+","+FEED_NAME+","+FEED_URL+","+FEED_FAVICON+
+	    		  ","+FEED_UPDATE_DATE+","+FEED_LASTACCESS_DATE+
 	    		" FROM "+FEED_TABLE+
 	    		" WHERE "+FEED_ID+"=?" +
 	    		" ORDER BY "+FEED_NAME;
 	    
 	    private static final String getAllFeedQuery =
-	    		" SELECT "+FEED_ID+","+FEED_NAME+","+FEED_URL+","+FEED_FAVICON+","+FEED_LASTACCESS+
+	    		" SELECT "+FEED_ID+","+FEED_NAME+","+FEED_URL+","+FEED_FAVICON+
+	    			","+FEED_UPDATE_DATE+","+FEED_LASTACCESS_DATE+
 	    		" FROM "+FEED_TABLE+
 	    		" ORDER BY "+FEED_NAME;
 
@@ -185,7 +197,9 @@ public class RssFeedsDB{
 		ContentValues row = new ContentValues(2);
 		row.put(FOLDER_NAME,name);
 		row.put(FOLDER_PARENT,parentId);
-		return db.insert(FOLDER_TABLE, null, row);
+		long newID = db.insert(FOLDER_TABLE, null, row);
+		db.close();
+		return newID;
 	}
 	    
 	
@@ -195,8 +209,47 @@ public class RssFeedsDB{
 		row.put(FEED_FOLDER, parentId);
 		row.put(FEED_NAME,name);
 		row.put(FEED_URL, url);
-		return db.insert(FEED_TABLE,null, row);
-		
+		long newID = db.insert(FEED_TABLE,null, row);
+		db.close();
+		return newID;
+
+	}
+	
+	public int updateVisitDate(long feedId, Date d){
+		SQLiteDatabase db = mDatabaseOpenHelper.getWritableDatabase();
+		ContentValues row = new ContentValues(1);
+		row.put(FEED_LASTACCESS_DATE,d.getTime());
+		int retValue = db.update(FEED_TABLE, row,FEED_ID+"=?",new String[]{Long.toString(feedId)});		
+		db.close();
+		return retValue;
+	}
+
+	
+	public int updateRssUpdateDate(long feedId, Date d){
+		SQLiteDatabase db = mDatabaseOpenHelper.getWritableDatabase();
+		ContentValues row = new ContentValues(1);
+		row.put(FEED_UPDATE_DATE,d.getTime());
+		int retValeue= db.update(FEED_TABLE, row,FEED_ID+"=?",new String[]{Long.toString(feedId)});
+		db.close();
+		return retValeue;
+	}
+
+	public void updateRssUpdateDate(Iterable<Pair<Long,Date>> updateRow){
+		Log.d(TAG, "update: Rss ");
+		SQLiteDatabase db = mDatabaseOpenHelper.getWritableDatabase();
+		String updateCond =FEED_ID+"=?";
+		String[] updateWhere = new String[1]; 
+		ContentValues row = new ContentValues(1);
+		db.beginTransaction();
+		for (Pair<Long,Date> temp : updateRow){
+			Log.d(TAG, "update: "+temp.first+" Date:"+temp.second);
+			row.put(FEED_UPDATE_DATE,temp.second.getTime());
+			updateWhere[0]=temp.first.toString();
+			db.update(FEED_TABLE,row,updateCond,updateWhere);
+		}
+		db.setTransactionSuccessful();
+		db.endTransaction();
+		db.close();
 		
 	}
 	
@@ -272,7 +325,8 @@ public class RssFeedsDB{
                     		FEED_NAME+" TEXT NOT NULL,"+
                     		FEED_URL+" TEXT NOT NULL,"+
                     		FEED_FAVICON+" BLOB,"+
-                    		FEED_LASTACCESS+" INTEGER,"+
+                    		FEED_LASTACCESS_DATE+" INTEGER DEFAULT 0,"+
+                    		FEED_UPDATE_DATE+" INTEGER  DEFAULT 1,"+
                     		FEED_FOLDER+" INTEGER NOT NULL REFERENCES "+FOLDER_TABLE+"("+FOLDER_ID+")" +
                     				"ON DELETE CASCADE" +
                      ");";
