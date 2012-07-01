@@ -211,7 +211,7 @@ public class RssViewFragment extends OnlineFragment {
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
 			
-			if(useExternalBrowser){
+			if(!useExternalBrowser){
 				browser.loadUrl(url);
 			}else{
 				Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
