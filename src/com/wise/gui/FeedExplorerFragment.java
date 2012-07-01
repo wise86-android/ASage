@@ -163,10 +163,8 @@ public class FeedExplorerFragment extends OnlineFragment implements
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
-		Log.d(TAG, "menu");
 		switch (item.getItemId()) {
 		case R.id.sync_menu:
-			Log.d(TAG, "sync");
 			checkSync();
 			return true;
 		case R.id.addFeed_menu:

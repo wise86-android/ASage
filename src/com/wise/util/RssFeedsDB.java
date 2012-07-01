@@ -234,22 +234,22 @@ public class RssFeedsDB{
 		return retValeue;
 	}
 
-	public void updateRssUpdateDate(Iterable<Pair<Long,Date>> updateRow){
-		Log.d(TAG, "update: Rss ");
+	public int updateRssUpdateDate(Iterable<Pair<Long,Date>> updateRow){
 		SQLiteDatabase db = mDatabaseOpenHelper.getWritableDatabase();
 		String updateCond =FEED_ID+"=?";
 		String[] updateWhere = new String[1]; 
 		ContentValues row = new ContentValues(1);
 		db.beginTransaction();
+		int retValue =0;
 		for (Pair<Long,Date> temp : updateRow){
-			Log.d(TAG, "update: "+temp.first+" Date:"+temp.second);
 			row.put(FEED_UPDATE_DATE,temp.second.getTime());
 			updateWhere[0]=temp.first.toString();
-			db.update(FEED_TABLE,row,updateCond,updateWhere);
+			retValue+=db.update(FEED_TABLE,row,updateCond,updateWhere);
 		}
 		db.setTransactionSuccessful();
 		db.endTransaction();
 		db.close();
+		return retValue;
 		
 	}
 	
