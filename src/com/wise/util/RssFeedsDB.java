@@ -36,7 +36,6 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.content.AsyncTaskLoader;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Loader;
@@ -192,7 +191,7 @@ public class RssFeedsDB{
 				"" + parentID });
 	}
 	
-	private class ElementCursorLoader extends SimpleCursorLoader{
+	public static class ElementCursorLoader extends SimpleCursorLoader{
 
 		private long parentId;
 		RssFeedsDB db;
