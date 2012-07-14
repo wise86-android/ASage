@@ -49,7 +49,7 @@ public class ASage extends CachedActivity {
 			Uri feeds = intent.getData();
 			new RssFeedsDB(this).importOpml(new File(feeds.getPath()));
 		}
-		
+
 		this.getFragmentManager().beginTransaction().add(R.id.feed_list_contaner, new FeedExplorerFragment()).commit();
 		setContentView(R.layout.a_sage);
 		

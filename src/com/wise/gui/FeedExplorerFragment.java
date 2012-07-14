@@ -91,21 +91,34 @@ public class FeedExplorerFragment extends OnlineFragment implements
 	
 	private int iconSize;
 	
-	public FeedExplorerFragment(){
-		this(1);
-	}
+	
+    public static FeedExplorerFragment newInstance(long index) {
+    	FeedExplorerFragment f = new FeedExplorerFragment();
 
-	public FeedExplorerFragment(long rootId){
-		folderId=rootId;
+        Bundle args = new Bundle();
+        args.putLong(SALVED_GROUP_ID, index);
+        f.setArguments(args);
+
+        return f;
+    }
+	
+	
+	public FeedExplorerFragment(){
+		folderId=RssFeedsDB.FOLDER_ROOT_ID;
 	}
 	
 	/** @see android.app.Fragment#onCreate(android.os.Bundle) */
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		if(savedInstanceState!=null)
-			folderId = savedInstanceState.getLong(SALVED_GROUP_ID, 1);
-		
+
+		if(savedInstanceState!=null){
+			folderId = savedInstanceState.getLong(SALVED_GROUP_ID, RssFeedsDB.FOLDER_ROOT_ID);
+			
+		}else{
+			savedInstanceState = this.getArguments();
+			if(savedInstanceState!=null)
+				folderId = savedInstanceState.getLong(SALVED_GROUP_ID, RssFeedsDB.FOLDER_ROOT_ID);
+		}
 		
 		this.setHasOptionsMenu(true);
 
@@ -127,6 +140,11 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		
 		getLoaderManager().initLoader(RSS_LOADER, loaderParam, this);
 				
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle state){
+		state.putLong(SALVED_GROUP_ID, folderId);		
 	}
 	
 	@Override
@@ -257,7 +275,7 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		
 		long newRoot = elementInFolder.getLong(elementIdColumn);
 		Log.d(TAG, "newRoot "+newRoot +" elemet "+folderId );
-		Fragment f = new FeedExplorerFragment(newRoot);
+		Fragment f = FeedExplorerFragment.newInstance(newRoot);
 		
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
 		ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
