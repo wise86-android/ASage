@@ -30,6 +30,7 @@ import java.util.Date;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
@@ -50,21 +51,26 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
+import android.app.LoaderManager;
+
 import com.wise.R;
 import com.wise.util.RssFeedsDB;
 import com.wise.util.SearchUpdateFeed;
+
 
 /**
  * @author wise
  *
  */
 public class FeedExplorerFragment extends OnlineFragment implements
-	OnItemClickListener{
+	OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>{
 
 	private final static String TAG = "FeedExplorer";
 	
 	private final static String SALVED_GROUP_ID="FeedExplorerFragment_groupId";
-
+	
+	private final static int RSS_LOADER =0;
+	
 	private RssFeedsDB rssDb;
 	
 	private long folderId;
@@ -116,19 +122,11 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		//this.getLoaderManager().initLoader(CURSOR_BOOKMARK, null, this);
 		rssDb = new RssFeedsDB(this.getActivity());
 		
+		Bundle loaderParam = new Bundle(1);
+		loaderParam.putLong(RssFeedsDB.FOLDER_ID,folderId);
 		
-		
-		elementInFolder= rssDb.getAllElement(folderId);
-		elementIdColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_ID);
-		elementNameColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_NAME);
-		elementIsFeedColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_IS_FEED);
-		elementHaveUpdateColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_HAVEUPDATE);
-		rssFavIconColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_FAVICON);
-		rssUrlColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_URL);
-		
-		elementsAdapter.swapCursor(elementInFolder);
-		Log.d(TAG, "N Element ="+elementInFolder.getCount());
-		
+		getLoaderManager().initLoader(RSS_LOADER, loaderParam, this);
+				
 	}
 	
 	@Override
@@ -280,6 +278,43 @@ public class FeedExplorerFragment extends OnlineFragment implements
 		else
 			onClickGroup(v);
 	
+	}
+
+	/**
+	 * @see android.app.LoaderManager.LoaderCallbacks#onCreateLoader(int, android.os.Bundle)
+	 */
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		if(id == RSS_LOADER)
+			return rssDb.getAllElementAsync(args.getLong(RssFeedsDB.FOLDER_ID));
+		return null; //TODO mettere un eccezione??
+	}
+
+	/**
+	 * @see android.app.LoaderManager.LoaderCallbacks#onLoadFinished(android.content.Loader, java.lang.Object)
+	 */
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor elementsCursor) {
+		
+		elementInFolder = elementsCursor;
+		
+		elementIdColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_ID);
+		elementNameColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_NAME);
+		elementIsFeedColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_IS_FEED);
+		elementHaveUpdateColumn=elementInFolder.getColumnIndex(RssFeedsDB.ELEMENT_HAVEUPDATE);
+		rssFavIconColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_FAVICON);
+		rssUrlColumn = elementInFolder.getColumnIndex(RssFeedsDB.FEED_URL);
+		
+		elementsAdapter.swapCursor(elementInFolder);
+	}
+
+	/**
+	 * @see android.app.LoaderManager.LoaderCallbacks#onLoaderReset(android.content.Loader)
+	 */
+	@Override
+	public void onLoaderReset(Loader<Cursor> arg0) {
+		elementsAdapter.swapCursor(null);
+		
 	}
 
 }

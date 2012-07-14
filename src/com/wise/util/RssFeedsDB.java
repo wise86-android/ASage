@@ -36,8 +36,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import android.content.AsyncTaskLoader;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -60,8 +62,6 @@ public class RssFeedsDB{
 
 	    private static final String FEED_TABLE ="Feed";
 	    private static final String FOLDER_TABLE ="Folder";
-	    
-	    private final FeedDBOpenHelper mDatabaseOpenHelper;
 	    
 	    public static final String FEED_ID="_id";
 	    public static final String FEED_NAME="Name";
@@ -118,6 +118,9 @@ public class RssFeedsDB{
 	    		" FROM "+FEED_TABLE+
 	    		" ORDER BY "+FEED_NAME;
 
+	    private final FeedDBOpenHelper mDatabaseOpenHelper;
+	    private Context c;
+	    
 	/**
 	 * Constructor
 	 * 
@@ -126,6 +129,7 @@ public class RssFeedsDB{
 	 */
 	public RssFeedsDB(Context context) {
 		mDatabaseOpenHelper = new FeedDBOpenHelper(context);
+		c = context;
 	}
 
 	/**
@@ -186,6 +190,37 @@ public class RssFeedsDB{
 		Log.d(TAG, "Db parent:\n" + parentID);
 		return db.rawQuery(SelectElement, new String[] { "" + parentID,
 				"" + parentID });
+	}
+	
+	private class ElementCursorLoader extends SimpleCursorLoader{
+
+		private long parentId;
+		RssFeedsDB db;
+		
+		/**
+		 * @param context
+		 */
+		public ElementCursorLoader(Context context,RssFeedsDB db,long parentId) {
+			super(context);
+			this.db = db;
+			this.parentId = parentId;
+		}
+
+		/**
+		 * @see com.wise.util.SimpleCursorLoader#loadInBackground()
+		 */
+		@Override
+		public Cursor loadInBackground() {
+			return db.getAllElement(parentId);
+		}
+	}
+	
+	public Loader<Cursor> getAllElementAsync(long parentId){
+		return new ElementCursorLoader(c,this,parentId);
+	}
+
+	public Loader<Cursor> getAllElementAsync(){
+		return new ElementCursorLoader(c,this,FOLDER_ROOT_ID);
 	}
 	
 	public long insertFolder(String name){
